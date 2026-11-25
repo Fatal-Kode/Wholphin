@@ -12,7 +12,6 @@ An open-source Jellyfin client for Android TV. This build focuses on video playb
 - **Optional server deinterlacing for SD video.** Enable **Settings → Advanced Settings → Playback → Transcode interlaced SD video** to request server-side video transcoding for sources Jellyfin reports as interlaced, up to 1024 × 576. Progressive SD follows the normal playback rules. Jellyfin controls the deinterlacing method and output frame rate.
 - **Playback indicators beside the bottom-right controls.** The video and audio badges report each track’s playback mode separately, including **Direct Play**, **Original** for streams copied by the server, and **Transcoding**.
 - **Frame rate and display refresh rate in one indicator.** The OSD shows readings such as `23.976 fps → 23.976 Hz` or `25 fps → 50 Hz` when those rates are available.
-- **Trickplay seek previews.** Select **Settings → Advanced Settings → Playback → D-Pad seek bar mode → Trickplay**. Left and right on the remote show thumbnails when Jellyfin has generated them for the video.
 
 ### Browsing and settings
 
