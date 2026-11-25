@@ -136,6 +136,7 @@ sealed interface PlaybackAction {
 @Composable
 fun PlaybackControls(
     player: Player,
+    statusBadges: @Composable () -> Unit = {},
     controllerViewState: ControllerViewState,
     onPlaybackActionClick: (PlaybackAction) -> Unit,
     onClickPlaybackDialogType: (PlaybackDialogType) -> Unit,
@@ -213,6 +214,7 @@ fun PlaybackControls(
             )
 
             Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.align(Alignment.CenterEnd),
             ) {
                 currentSegment?.let { segment ->
@@ -227,6 +229,7 @@ fun PlaybackControls(
                                 .padding(end = 32.dp),
                     )
                 }
+                statusBadges()
                 RightPlaybackButtons(
                     onControllerInteraction = onControllerInteraction,
                     onClickPlaybackDialogType = onClickPlaybackDialogType,

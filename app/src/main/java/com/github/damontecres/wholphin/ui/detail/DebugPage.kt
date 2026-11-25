@@ -61,7 +61,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.acra.util.versionCodeLong
+import androidx.core.content.pm.PackageInfoCompat
 import org.jellyfin.sdk.model.ClientInfo
 import org.jellyfin.sdk.model.DeviceInfo
 import timber.log.Timber
@@ -146,7 +146,7 @@ class DebugViewModel
                 val appInfo =
                     listOf(
                         "Version Name: ${pkgInfo.versionName}",
-                        "Version Code: ${pkgInfo.versionCodeLong}",
+                        "Version Code: ${PackageInfoCompat.getLongVersionCode(pkgInfo)}",
                         "ClientInfo:  $clientInfo",
                         "Build type: ${BuildConfig.BUILD_TYPE}",
                         "Build flavor: ${BuildConfig.FLAVOR}",

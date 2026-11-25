@@ -38,7 +38,6 @@ fun CollectionFolderMovie(
     val tabs =
         remember {
             listOf(
-                TabDetails(R.string.recommended),
                 TabDetails(R.string.library),
                 TabDetails(R.string.collections),
                 TabDetails(R.string.genres),
@@ -48,29 +47,14 @@ fun CollectionFolderMovie(
     var showHeader by rememberSaveable { mutableStateOf(true) }
 
     TabbedPage(
-        itemId = destination.itemId.toString(),
+        itemId = "${destination.itemId}:library-tabs",
         tabs = tabs,
         modifier = modifier,
         showTabs = showHeader,
     ) { tabIndex, tabDetails ->
         when (tabIndex) {
-            // Recommended
-            0 -> {
-                RecommendedMovie(
-                    preferences = preferences,
-                    parentId = destination.itemId,
-                    onFocusPosition = { pos ->
-                        showHeader = pos.row < 1
-                    },
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .focusRequester(tabDetails.contentFocusRequester),
-                )
-            }
-
             // Library
-            1 -> {
+            0 -> {
                 CollectionFolderView(
                     preferences = preferences,
                     onClickItem = { _, item ->
@@ -102,7 +86,7 @@ fun CollectionFolderMovie(
             }
 
             // Collections
-            2 -> {
+            1 -> {
                 CollectionFolderView(
                     preferences = preferences,
                     onClickItem = { _, item ->
@@ -134,7 +118,7 @@ fun CollectionFolderMovie(
             }
 
             // Genres
-            3 -> {
+            2 -> {
                 GenreCardGrid(
                     itemId = destination.itemId,
                     includeItemTypes = listOf(BaseItemKind.MOVIE),

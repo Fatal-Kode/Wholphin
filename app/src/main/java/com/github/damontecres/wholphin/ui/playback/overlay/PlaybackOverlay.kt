@@ -194,6 +194,7 @@ fun PlaybackOverlay(
                         }
                     PlaybackController(
                         item = item,
+                        statusBadges = { currentPlayback?.let { PlaybackModeBadges(it, player) } },
                         nextState = nextState,
                         player = player,
                         controllerViewState = controllerViewState,
@@ -323,7 +324,7 @@ fun PlaybackOverlay(
             )
         }
         AnimatedVisibility(
-            visible = controllerViewState.controlsVisible && (currentPlayback != null || (!showDebugInfo && showClock)),
+            visible = controllerViewState.controlsVisible && !showDebugInfo && showClock,
             enter = slideIn { IntOffset(x = it.width / 2, y = -it.height / 2) } + fadeIn(),
             exit = slideOut { IntOffset(x = it.width / 2, y = -it.height / 2) } + fadeOut(),
             modifier =
@@ -334,7 +335,6 @@ fun PlaybackOverlay(
                 if (!showDebugInfo && showClock) {
                     Box { TimeDisplay() }
                 }
-                currentPlayback?.let { PlaybackModeBadges(it) }
             }
         }
 
@@ -388,7 +388,25 @@ enum class OverlayViewState {
 
 
 @Composable
-private fun PlaybackModeBadges(playback: CurrentPlayback) {
+private fun PlaybackModeBadges(playback: CurrentPlayback, player: Player) {
+    val view = androidx.compose.ui.platform.LocalView.current
+    val rates by androidx.compose.runtime.produceState("— fps → — Hz", player, playback.sourceId, view) {
+        val format = java.text.DecimalFormat("0.###")
+        while (true) {
+            val fps = (player as? androidx.media3.exoplayer.ExoPlayer)?.videoFormat?.frameRate
+                ?.takeIf { it > 0f } ?: player.currentTracks.groups.firstNotNullOfOrNull { group ->
+                    if (group.type != androidx.media3.common.C.TRACK_TYPE_VIDEO) null else
+                        (0 until group.length).firstNotNullOfOrNull { index ->
+                            group.getTrackFormat(index).frameRate.takeIf { group.isTrackSelected(index) && it > 0f }
+                        }
+                } ?: playback.mediaSourceInfo.mediaStreams.orEmpty().firstOrNull {
+                    playback.playMethod == PlayMethod.DIRECT_PLAY && it.type == org.jellyfin.sdk.model.api.MediaStreamType.VIDEO
+                }?.let { it.averageFrameRate ?: it.realFrameRate }?.takeIf { it > 0f }
+            val hz = view.display?.mode?.refreshRate
+            value = "${fps?.let { format.format(it) } ?: "—"} fps → ${hz?.let { format.format(it) } ?: "—"} Hz"
+            kotlinx.coroutines.delay(1000)
+        }
+    }
     val info = playback.transcodeInfo
     val directPlay = playback.playMethod == PlayMethod.DIRECT_PLAY
     val directStream = playback.playMethod == PlayMethod.DIRECT_STREAM
@@ -407,24 +425,25 @@ private fun PlaybackModeBadges(playback: CurrentPlayback) {
     }
 
     Column(
-        modifier = Modifier.padding(top = 8.dp, end = 16.dp),
+        modifier = Modifier.padding(end = 6.dp),
         horizontalAlignment = Alignment.End,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(1.dp),
     ) {
         val shape = RoundedCornerShape(6.dp)
         val badge = Modifier
             .background(AppColors.TransparentBlack50, shape)
-            .padding(horizontal = 10.dp, vertical = 4.dp)
+            .padding(horizontal = 4.dp)
+        Text(rates, modifier = badge, style = MaterialTheme.typography.labelSmall, color = Color.White)
         Text(
             text = stringResource(R.string.osd_video_mode, stringResource(video)),
             modifier = badge,
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelSmall,
             color = Color.White,
         )
         Text(
             text = stringResource(R.string.osd_audio_mode, stringResource(audio)),
             modifier = badge,
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.labelSmall,
             color = Color.White,
         )
     }

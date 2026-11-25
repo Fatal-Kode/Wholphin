@@ -162,16 +162,12 @@ val discoverMovieFilters =
     listOf(
         DiscoverMovieGenreFilter,
         DiscoverMovieStudiosFilter,
-        DiscoverRatingFilter,
-        DiscoverMovieContentRatingFilter,
     )
 
 val discoverTvFilters =
     listOf(
         DiscoverTvGenreFilter,
         DiscoverTvStudiosFilter,
-        DiscoverRatingFilter,
-        DiscoverTvContentRatingFilter,
         DiscoverTvStatusFilter,
     )
 

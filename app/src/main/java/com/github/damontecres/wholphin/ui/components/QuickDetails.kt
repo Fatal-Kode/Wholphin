@@ -40,20 +40,10 @@ fun QuickDetails(
     textStyle: TextStyle = MaterialTheme.typography.titleSmall,
     endsAt: DateTime? = null,
 ) {
-    val enabled = LocalInterfaceCustomization.current.enabledDisplayToggles
     val inlineContentMap = rememberQuickDetailsContentMap(textStyle)
     Row(modifier = modifier) {
         if (details != null) {
             QuickDetailsText(details.basic, Modifier, textStyle, inlineContentMap)
-            if (DisplayToggle.OFFICIAL_RATING in enabled) {
-                QuickDetailsText(details.officialRating, Modifier, textStyle, inlineContentMap)
-            }
-            if (DisplayToggle.COMMUNITY_RATING in enabled) {
-                QuickDetailsText(details.communityRating, Modifier, textStyle, inlineContentMap)
-            }
-            if (DisplayToggle.CRITIC_RATING in enabled) {
-                QuickDetailsText(details.criticRating, Modifier, textStyle, inlineContentMap)
-            }
         }
         if (timeRemaining != null) {
             TimeRemaining(timeRemaining, textStyle = textStyle)

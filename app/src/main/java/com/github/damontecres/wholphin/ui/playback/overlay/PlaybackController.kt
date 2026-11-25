@@ -49,6 +49,7 @@ fun PlaybackController(
     item: BaseItem?,
     nextState: OverlayViewState?,
     player: Player,
+    statusBadges: @Composable () -> Unit = {},
     controllerViewState: ControllerViewState,
     showPlay: Boolean,
     previousEnabled: Boolean,
@@ -73,6 +74,7 @@ fun PlaybackController(
             title = item?.title,
             subtitle = item?.subtitleLong,
             player = player,
+            statusBadges = statusBadges,
             controllerViewState = controllerViewState,
             showPlay = showPlay,
             previousEnabled = previousEnabled,
@@ -134,6 +136,7 @@ internal val subtitleTextSize = 18.sp
 fun Controller(
     title: String?,
     player: Player,
+    statusBadges: @Composable () -> Unit = {},
     controllerViewState: ControllerViewState,
     showPlay: Boolean,
     previousEnabled: Boolean,
@@ -227,6 +230,7 @@ fun Controller(
         PlaybackControls(
             modifier = Modifier.fillMaxWidth(),
             player = player,
+            statusBadges = statusBadges,
             onPlaybackActionClick = onPlaybackActionClick,
             controllerViewState = controllerViewState,
             onSeekProgress = {

@@ -87,29 +87,8 @@ fun DiscoverMovieDetailsHeader(
                             ?.minutes
                             ?.roundMinutes
                             ?.let { add(resources.formatDuration(it)) }
-                        val release =
-                            movie.releases
-                                ?.results
-                                ?.firstOrNull { it.iso31661 == Locale.getDefault().country }
-                                ?: movie.releases
-                                    ?.results
-                                    ?.firstOrNull { it.iso31661 == Locale.US.country }
-                                ?: movie.releases
-                                    ?.results
-                                    ?.firstOrNull()
-
-                        release
-                            ?.releaseDates
-                            ?.firstOrNull()
-                            ?.certification
-                            ?.takeIf { it.isNotNullOrBlank() }
-                            ?.let(::add)
                     }.let {
-                        listToDotString(
-                            it,
-                            rating?.audienceRating,
-                            rating?.criticRating?.toFloat(),
-                        )
+                        listToDotString(it)
                     }
                 }
 

@@ -5,7 +5,6 @@ import androidx.navigation3.runtime.NavKey
 import com.github.damontecres.wholphin.data.CurrentUser
 import com.github.damontecres.wholphin.data.model.JellyfinServer
 import kotlinx.serialization.Serializable
-import org.acra.ACRA
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -32,7 +31,6 @@ class SetupNavigationManager
         private fun log() {
             val dest = backStack.lastOrNull().toString()
             Timber.i("Current setup destination: %s", dest)
-            ACRA.errorReporter.putCustomData("setupDestination", dest)
         }
     }
 

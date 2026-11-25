@@ -237,9 +237,6 @@ class SeerrDiscoverViewModel
             viewModelScope.launchIO {
                 if (item != null) {
                     backdropService.submit("discover_${item.id}", item.backDropUrl)
-                    if (item is DiscoverFocusedItem.Item) {
-                        fetchRating(item.id, item.item.type)
-                    }
                 } else {
                     backdropService.clearBackdrop()
                 }
@@ -424,13 +421,8 @@ fun SeerrDiscoverPage(
                             ?.toString()
                             ?.let(::add)
                     }.let {
-                        val rating = focusedItem.id.let { ratingMap[it] }
                         val str =
-                            listToDotString(
-                                it,
-                                rating?.audienceRating,
-                                rating?.criticRating?.toFloat(),
-                            )
+                            listToDotString(it)
                         QuickDetailsData(str)
                     }
                 }

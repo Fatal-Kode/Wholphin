@@ -646,10 +646,6 @@ data class TvProgram(
                     dot()
                     append(it)
                 }
-                officialRating?.let {
-                    dot()
-                    append(it)
-                }
             }
         }
     }

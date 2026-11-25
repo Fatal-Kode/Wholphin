@@ -106,15 +106,6 @@ class DiscoverMovieViewModel
 
                     updateCanCancel()
 
-                    viewModelScope.launchIO {
-                        val rating =
-                            getDiscoverRating(item.id) {
-                                DiscoverRating(
-                                    seerrService.api.moviesApi.movieMovieIdRatingsGet(movieId = item.id),
-                                )
-                            }
-                        _state.update { it.copy(rating = rating) }
-                    }
                     if (state.value.similar.isEmpty()) {
                         viewModelScope.launchIO {
                             val result =
@@ -145,14 +136,6 @@ class DiscoverMovieViewModel
                                 ?.map { seerrService.createDiscoverItem(it) }
                                 .orEmpty()
                     _state.update { it.copy(people = people) }
-                    val trailers =
-                        movie.relatedVideos
-                            ?.filter { it.type == RelatedVideo.Type.TRAILER }
-                            ?.filter { it.name.isNotNullOrBlank() && it.url.isNotNullOrBlank() }
-                            ?.map {
-                                RemoteTrailer(it.name!!, it.url!!, it.site)
-                            }.orEmpty()
-                    _state.update { it.copy(trailers = trailers) }
                 } catch (ex: CancellationException) {
                     throw ex
                 } catch (ex: Exception) {

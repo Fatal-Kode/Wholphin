@@ -2,7 +2,6 @@ package com.github.damontecres.wholphin.services
 
 import androidx.navigation3.runtime.NavBackStack
 import com.github.damontecres.wholphin.ui.nav.Destination
-import org.acra.ACRA
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -86,6 +85,5 @@ class NavigationManager
         private fun log() {
             val dest = backStack.lastOrNull().toString()
             Timber.i("Current Destination: %s", dest)
-            ACRA.errorReporter.putCustomData("destination", dest)
         }
     }

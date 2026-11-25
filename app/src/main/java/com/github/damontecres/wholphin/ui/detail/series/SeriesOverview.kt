@@ -189,7 +189,6 @@ fun SeriesOverview(
                 viewModel.onResumePage()
 
                 onPauseOrDispose {
-                    viewModel.release()
                 }
             }
 
@@ -252,7 +251,6 @@ fun SeriesOverview(
                 playOnClick = { resume ->
                     rowFocused = EPISODE_ROW
                     episodeList?.getOrNull(position.episodeRowIndex)?.let {
-                        viewModel.release()
                         viewModel.navigateTo(
                             Destination.Playback(
                                 it.id,

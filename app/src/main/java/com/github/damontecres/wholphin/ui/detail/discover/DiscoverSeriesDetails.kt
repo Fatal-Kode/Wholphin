@@ -465,11 +465,7 @@ fun DiscoverSeriesDetailsHeader(
                             ?.let { add(resources.formatDuration(it)) }
                         // TODO
                     }.let {
-                        listToDotString(
-                            it,
-                            rating?.audienceRating,
-                            rating?.criticRating?.toFloat(),
-                        )
+                        listToDotString(it)
                     }
                 }
 

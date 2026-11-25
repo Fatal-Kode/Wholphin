@@ -234,7 +234,7 @@ sealed interface AppPreference<Pref, T> {
         val PlayThemeMusic =
             AppChoicePreference<AppPreferences, ThemeSongVolume>(
                 title = R.string.play_theme_music,
-                defaultValue = ThemeSongVolume.MEDIUM,
+                defaultValue = ThemeSongVolume.DISABLED,
                 getter = { it.interfacePreferences.playThemeSongs },
                 setter = { prefs, value ->
                     prefs.updateInterfacePreferences { playThemeSongs = value }
@@ -627,7 +627,7 @@ sealed interface AppPreference<Pref, T> {
         val UpdateUrl =
             AppStringPreference<AppPreferences>(
                 title = R.string.update_url,
-                defaultValue = "https://api.github.com/repos/Fatal-Kode/Wholphin/releases/tags/sd-deinterlace-test",
+                defaultValue = "https://api.github.com/repos/Fatal-Kode/Wholphin/releases/tags/sd-deinterlace-updates",
                 getter = { it.updateUrl },
                 setter = { prefs, value ->
                     prefs.update { updateUrl = value }
@@ -793,26 +793,6 @@ sealed interface AppPreference<Pref, T> {
                 title = R.string.user_interface_language,
                 getter = { },
                 setter = { prefs, _ -> prefs },
-            )
-
-        val SendCrashReports =
-            AppSwitchPreference<AppPreferences>(
-                title = R.string.send_crash_reports,
-                defaultValue = true,
-                getter = {
-                    PreferenceManager
-                        .getDefaultSharedPreferences(WholphinApplication.instance)
-                        .getBoolean("acra.enable", true)
-                },
-                setter = { prefs, value ->
-                    PreferenceManager
-                        .getDefaultSharedPreferences(WholphinApplication.instance)
-                        .edit {
-                            putBoolean("acra.enable", value)
-                        }
-                    prefs.update { sendCrashReports = value }
-                },
-                summary = R.string.send_crash_reports_summary,
             )
 
         val SendAppLogs =
@@ -1187,7 +1167,7 @@ val basicPreferences =
                 listOf(
                     AppPreference.SignInAuto,
                     AppPreference.RememberSelectedTab,
-                    AppPreference.PlayThemeMusic,
+
                     AppPreference.SubtitleStyle,
                     AppPreference.ThemeColors,
                     AppPreference.ScreensaverSettings,
@@ -1216,7 +1196,7 @@ val basicPreferences =
             title = R.string.profile_specific_settings,
             preferences =
                 listOf(
-                    AppPreference.ProtectProfilePreference,
+
                     AppPreference.CustomizeHome,
                     AppPreference.UserPinnedNavDrawerItems,
                     AppPreference.UserInterfaceLanguage,
@@ -1322,7 +1302,7 @@ val advancedPreferences =
                         AppPreference.BackdropStylePref,
                         AppPreference.ShowLogos,
                         AppPreference.ManageMedia,
-                        AppPreference.DisplayTogglesPref,
+
                         // Temporarily disabled, see https://github.com/damontecres/Wholphin/pull/127#issuecomment-3478058418
 //                    AppPreference.NavDrawerSwitchOnFocus,
                         AppPreference.SlideshowDuration,
@@ -1397,7 +1377,7 @@ val advancedPreferences =
                     listOf(
                         AppPreference.QuickConnect,
                         AppPreference.SendAppLogs,
-                        AppPreference.SendCrashReports,
+
                         AppPreference.DebugLogging,
                         AppPreference.ImageDiskCacheSize,
                         AppPreference.ClearImageCache,

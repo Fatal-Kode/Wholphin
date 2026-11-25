@@ -160,7 +160,6 @@ fun SeriesDetails(
         viewModel.refresh()
 
         onPauseOrDispose {
-            viewModel.release()
         }
     }
 

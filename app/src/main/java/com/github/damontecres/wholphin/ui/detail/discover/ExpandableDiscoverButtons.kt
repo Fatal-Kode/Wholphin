@@ -166,15 +166,6 @@ fun ExpandableDiscoverButtons(
             }
         }
 
-        if (trailers != null) {
-            item("trailers") {
-                TrailerButton(
-                    trailers = trailers,
-                    trailerOnClick = trailerOnClick,
-                    modifier = Modifier.onFocusChanged(buttonOnFocusChanged),
-                )
-            }
-        }
 
         // More button
         // No functionality yet

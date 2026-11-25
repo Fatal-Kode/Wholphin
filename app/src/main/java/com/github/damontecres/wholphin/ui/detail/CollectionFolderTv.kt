@@ -50,7 +50,6 @@ fun CollectionFolderTv(
     val tabs =
         remember {
             listOf(
-                TabDetails(R.string.recommended),
                 TabDetails(R.string.library),
                 TabDetails(R.string.genres),
                 TabDetails(R.string.studios),
@@ -66,29 +65,14 @@ fun CollectionFolderTv(
     var showHeader by rememberSaveable { mutableStateOf(true) }
 
     TabbedPage(
-        itemId = destination.itemId.toString(),
+        itemId = "${destination.itemId}:library-tabs",
         tabs = tabs,
         modifier = modifier,
         showTabs = showHeader,
     ) { tabIndex, tabDetails ->
         when (tabIndex) {
-            // Recommended
-            0 -> {
-                RecommendedTvShow(
-                    preferences = preferences,
-                    parentId = destination.itemId,
-                    onFocusPosition = { pos ->
-                        showHeader = pos.row < 1
-                    },
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .focusRequester(tabDetails.contentFocusRequester),
-                )
-            }
-
             // Library
-            1 -> {
+            0 -> {
                 CollectionFolderView(
                     preferences = preferences,
                     itemId = destination.itemId,
@@ -118,7 +102,7 @@ fun CollectionFolderTv(
             }
 
             // Genres
-            2 -> {
+            1 -> {
                 GenreCardGrid(
                     itemId = destination.itemId,
                     includeItemTypes = listOf(BaseItemKind.SERIES),
@@ -131,7 +115,7 @@ fun CollectionFolderTv(
             }
 
             // Studios
-            3 -> {
+            2 -> {
                 StudioCardGrid(
                     itemId = destination.itemId,
                     includeItemTypes = listOf(BaseItemKind.SERIES),

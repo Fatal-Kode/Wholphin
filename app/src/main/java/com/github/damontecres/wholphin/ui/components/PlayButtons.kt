@@ -182,15 +182,6 @@ fun ExpandablePlayButtons(
             )
         }
 
-        if (trailers != null) {
-            item("trailers") {
-                TrailerButton(
-                    trailers = trailers,
-                    trailerOnClick = trailerOnClick,
-                    modifier = Modifier.onFocusChanged(buttonOnFocusChanged),
-                )
-            }
-        }
         if (canDelete) {
             item("delete") {
                 DeleteButton(

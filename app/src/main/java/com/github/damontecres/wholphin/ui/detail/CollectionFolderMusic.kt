@@ -117,7 +117,6 @@ fun CollectionFolderMusic(
     val tabs =
         remember {
             listOf(
-                TabDetails(R.string.recommended),
                 TabDetails(R.string.albums),
                 TabDetails(R.string.artists),
                 TabDetails(R.string.genres),
@@ -136,29 +135,14 @@ fun CollectionFolderMusic(
             )
         }
     TabbedPage(
-        itemId = destination.itemId.toString(),
+        itemId = "${destination.itemId}:library-tabs",
         tabs = tabs,
         modifier = modifier,
         showTabs = showHeader,
     ) { tabIndex, tabDetails ->
         when (tabIndex) {
-            // Recommended
-            0 -> {
-                RecommendedMusic(
-                    preferences = preferences,
-                    parentId = destination.itemId,
-                    onFocusPosition = { pos ->
-                        showHeader = pos.row < 1
-                    },
-                    modifier =
-                        Modifier
-                            .fillMaxSize()
-                            .focusRequester(tabDetails.contentFocusRequester),
-                )
-            }
-
             // Albums
-            1 -> {
+            0 -> {
                 CollectionFolderView(
                     preferences = preferences,
                     actions = actions,
@@ -188,7 +172,7 @@ fun CollectionFolderMusic(
             }
 
             // Artists
-            2 -> {
+            1 -> {
                 CollectionFolderView(
                     preferences = preferences,
                     actions = actions,
@@ -218,7 +202,7 @@ fun CollectionFolderMusic(
             }
 
             // Genres
-            3 -> {
+            2 -> {
                 GenreCardGrid(
                     itemId = destination.itemId,
                     includeItemTypes = listOf(BaseItemKind.MUSIC_ALBUM),
@@ -231,7 +215,7 @@ fun CollectionFolderMusic(
             }
 
             // Songs
-            4 -> {
+            3 -> {
                 CollectionFolderView(
                     preferences = preferences,
                     actions = actions,

@@ -131,7 +131,8 @@ class SwitchUserViewModel
         fun trySwitchUser(user: JellyfinUser): Deferred<SwitchUserResult> =
             viewModelScope.async(WholphinDispatchers.IO) {
                 try {
-                    val current = serverRepository.changeUser(server, user)
+                    val verifiedUser = if (user.hasPin) user.copy(pin = null) else user
+                    val current = serverRepository.changeUser(server, verifiedUser)
                     navigationManager.reloadHome()
                     setupNavigationManager.navigateTo(SetupDestination.AppContent(current))
                     SwitchUserResult.Success

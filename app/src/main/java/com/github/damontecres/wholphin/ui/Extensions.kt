@@ -42,7 +42,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.acra.ACRA
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.Response
 import org.jellyfin.sdk.model.api.BaseItemDto
@@ -409,7 +408,6 @@ fun logTab(
 ) {
     val info = "$tabIndex, $name"
     Timber.i("Current tab: $info")
-    ACRA.errorReporter.putCustomData("tabInfo", info)
 }
 
 suspend fun <T> onMain(block: suspend CoroutineScope.() -> T) = withContext(WholphinDispatchers.Main, block)

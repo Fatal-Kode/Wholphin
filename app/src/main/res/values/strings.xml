@@ -996,4 +996,5 @@
     <string name="osd_mode_transcode">Transcoding</string>
     <string name="osd_mode_remux">Remuxing</string>
     <string name="osd_mode_pending">Unconfirmed</string>
+    <string name="allow_wholphin_installs">Open Android TV Settings and allow Wholphin to install unknown apps, then select Update again.</string>
 </resources>

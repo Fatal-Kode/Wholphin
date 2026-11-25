@@ -23,7 +23,6 @@ import com.github.damontecres.wholphin.services.PeopleFavorites
 import com.github.damontecres.wholphin.services.SeerrService
 import com.github.damontecres.wholphin.services.ServerReportService
 import com.github.damontecres.wholphin.services.StreamChoiceService
-import com.github.damontecres.wholphin.services.ThemeSongPlayer
 import com.github.damontecres.wholphin.services.TrailerService
 import com.github.damontecres.wholphin.services.UserPreferencesService
 import com.github.damontecres.wholphin.services.deleteItem
@@ -89,10 +88,8 @@ class SeriesViewModel
         val serverRepository: ServerRepository,
         private val navigationManager: NavigationManager,
         private val itemPlaybackRepository: ItemPlaybackRepository,
-        private val themeSongPlayer: ThemeSongPlayer,
         private val favoriteWatchManager: FavoriteWatchManager,
         private val peopleFavorites: PeopleFavorites,
-        private val trailerService: TrailerService,
         private val extrasService: ExtrasService,
         val streamChoiceService: StreamChoiceService,
         val serverReportService: ServerReportService,
@@ -121,7 +118,6 @@ class SeriesViewModel
         init {
             viewModelScope.launchIO {
                 Timber.v("Start")
-                addCloseable { themeSongPlayer.stop() }
                 val series =
                     try {
                         api.libraryApi
@@ -204,7 +200,6 @@ class SeriesViewModel
                         _state.update { it.copy(extras = extras) }
                     }
                 }
-                val remoteTrailers = trailerService.getRemoteTrailers(series)
                 this@SeriesViewModel.position.update {
                     it.copy(
                         episodeRowIndex =
@@ -216,16 +211,10 @@ class SeriesViewModel
                         series = DataLoadingState.Success(series),
                         seasons = seasons,
                         episodes = episodes,
-                        trailers = remoteTrailers,
                     )
                 }
 
                 if (seriesPageType == SeriesPageType.DETAILS) {
-                    viewModelScope.launchIO {
-                        trailerService.getLocalTrailers(series).letNotEmpty { localTrailers ->
-                            _state.update { it.copy(trailers = localTrailers + remoteTrailers) }
-                        }
-                    }
                     viewModelScope.launchIO {
                         val people = peopleFavorites.getPeopleFor(series)
                         _state.update { it.copy(people = people) }
@@ -293,9 +282,6 @@ class SeriesViewModel
         fun onResumePage() {
             state.value.series.successValue?.let { item ->
                 viewModelScope.launchDefault { backdropService.submit(item) }
-                viewModelScope.launchDefault {
-                    themeSongPlayer.playThemeFor(seriesId)
-                }
             }
         }
 
@@ -307,9 +293,6 @@ class SeriesViewModel
             }
         }
 
-        fun release() {
-            themeSongPlayer.stop()
-        }
 
         private fun getSeasons(
             series: BaseItem,
@@ -531,7 +514,6 @@ class SeriesViewModel
         }
 
         fun navigateTo(destination: Destination) {
-            release()
             navigationManager.navigateTo(destination)
         }
 

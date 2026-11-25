@@ -22,7 +22,6 @@ import com.github.damontecres.wholphin.services.PeopleFavorites
 import com.github.damontecres.wholphin.services.SeerrService
 import com.github.damontecres.wholphin.services.ServerReportService
 import com.github.damontecres.wholphin.services.StreamChoiceService
-import com.github.damontecres.wholphin.services.ThemeSongPlayer
 import com.github.damontecres.wholphin.services.TrailerService
 import com.github.damontecres.wholphin.services.UserPreferencesService
 import com.github.damontecres.wholphin.services.deleteItem
@@ -62,10 +61,8 @@ class MovieViewModel
         val itemPlaybackRepository: ItemPlaybackRepository,
         val streamChoiceService: StreamChoiceService,
         val serverReportService: ServerReportService,
-        private val themeSongPlayer: ThemeSongPlayer,
         private val favoriteWatchManager: FavoriteWatchManager,
         private val peopleFavorites: PeopleFavorites,
-        private val trailerService: TrailerService,
         private val extrasService: ExtrasService,
         private val userPreferencesService: UserPreferencesService,
         private val backdropService: BackdropService,
@@ -115,26 +112,15 @@ class MovieViewModel
                         movie,
                         userPreferencesService.getCurrent(),
                     )
-                val remoteTrailers = trailerService.getRemoteTrailers(movie)
                 val chapters = Chapter.fromDto(movie.data)
                 _state.update {
                     it.copy(
                         loading = DataLoadingState.Success(movie),
                         chosenStreams = chosenStreams,
-                        trailers = remoteTrailers,
                         chapters = chapters,
                     )
                 }
                 backdropService.submit(movie)
-                viewModelScope.launchIO {
-                    trailerService.getLocalTrailers(movie).letNotEmpty { localTrailers ->
-                        _state.update {
-                            it.copy(
-                                trailers = localTrailers + remoteTrailers,
-                            )
-                        }
-                    }
-                }
                 viewModelScope.launchIO {
                     val people = peopleFavorites.getPeopleFor(movie)
                     _state.update {
@@ -251,21 +237,9 @@ class MovieViewModel
             }
         }
 
-        fun maybePlayThemeSong(itemId: UUID) {
-            viewModelScope.launchIO {
-                themeSongPlayer.playThemeFor(itemId)
-                addCloseable {
-                    themeSongPlayer.stop()
-                }
-            }
-        }
 
-        fun release() {
-            themeSongPlayer.stop()
-        }
 
         fun navigateTo(destination: Destination) {
-            release()
             navigationManager.navigateTo(destination)
         }
 

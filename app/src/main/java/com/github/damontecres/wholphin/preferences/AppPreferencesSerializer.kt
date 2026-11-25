@@ -21,7 +21,7 @@ class AppPreferencesSerializer
                 .apply {
                     updateUrl = AppPreference.UpdateUrl.defaultValue
                     autoCheckForUpdates = AppPreference.AutoCheckForUpdates.defaultValue
-                    sendCrashReports = AppPreference.SendCrashReports.defaultValue
+                    sendCrashReports = false
                     debugLogging = AppPreference.DebugLogging.defaultValue
                     signInAutomatically = AppPreference.SignInAuto.defaultValue
 

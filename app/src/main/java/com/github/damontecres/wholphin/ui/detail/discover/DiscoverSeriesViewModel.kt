@@ -111,13 +111,6 @@ class DiscoverSeriesViewModel
                     updateSeasonStatus(tv)
                     updateAvailability()
 
-                    viewModelScope.launchIO {
-                        val rating =
-                            getDiscoverRating(item.id) {
-                                DiscoverRating(seerrService.api.tvApi.tvTvIdRatingsGet(tvId = item.id))
-                            }
-                        _state.update { it.copy(rating = rating) }
-                    }
                     if (state.value.similar.isEmpty()) {
                         viewModelScope.launchIO {
                             val result =
@@ -149,14 +142,6 @@ class DiscoverSeriesViewModel
                                 .orEmpty()
                     _state.update { it.copy(people = people) }
 
-                    val trailers =
-                        tv.relatedVideos
-                            ?.filter { it.type == RelatedVideo.Type.TRAILER }
-                            ?.filter { it.name.isNotNullOrBlank() && it.url.isNotNullOrBlank() }
-                            ?.map {
-                                RemoteTrailer(it.name!!, it.url!!, it.site)
-                            }.orEmpty()
-                    _state.update { it.copy(trailers = trailers) }
                 } catch (ex: CancellationException) {
                     throw ex
                 } catch (ex: Exception) {

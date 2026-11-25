@@ -1,6 +1,12 @@
 package com.github.damontecres.wholphin.ui.setup
 
 import android.Manifest
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.net.toUri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -170,6 +176,12 @@ fun InstallUpdatePage(
 
     val state by viewModel.state.collectAsState()
     var permissions by remember { mutableStateOf(viewModel.updater.hasPermissions()) }
+    val context = LocalContext.current
+    val installPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && context.packageManager.canRequestPackageInstalls()) {
+            state.release?.let(viewModel::installRelease)
+        }
+    }
     val launcher =
         rememberLauncherForActivityResult(
             ActivityResultContracts.RequestPermission(),
@@ -200,6 +212,13 @@ fun InstallUpdatePage(
                     onInstallRelease = {
                         if (!permissions) {
                             launcher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !context.packageManager.canRequestPackageInstalls()) {
+                            val intent = Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, "package:${context.packageName}".toUri())
+                            try {
+                                installPermissionLauncher.launch(intent)
+                            } catch (_: android.content.ActivityNotFoundException) {
+                                Toast.makeText(context, R.string.allow_wholphin_installs, Toast.LENGTH_LONG).show()
+                            }
                         } else {
                             viewModel.installRelease(release)
                         }

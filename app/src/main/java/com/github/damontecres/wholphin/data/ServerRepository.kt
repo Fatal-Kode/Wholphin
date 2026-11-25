@@ -241,6 +241,7 @@ class ServerRepository
                                 existingUser.copy(
                                     // If the server authenticated via the server, always remove the PIN
                                     pin = null,
+                                    requireLogin = false,
                                     accessToken = accessToken,
                                     lastUsed = ZonedDateTime.now(),
                                 )

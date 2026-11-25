@@ -50,7 +50,6 @@ import com.github.damontecres.wholphin.services.MusicService
 import com.github.damontecres.wholphin.services.NavigationManager
 import com.github.damontecres.wholphin.services.ServerReportService
 import com.github.damontecres.wholphin.services.StreamChoiceService
-import com.github.damontecres.wholphin.services.ThemeSongPlayer
 import com.github.damontecres.wholphin.services.UserPreferencesService
 import com.github.damontecres.wholphin.services.deleteItem
 import com.github.damontecres.wholphin.ui.SlimItemFields
@@ -121,7 +120,6 @@ class CollectionFolderViewModel
         private val favoriteWatchManager: FavoriteWatchManager,
         private val backdropService: BackdropService,
         private val navigationManager: NavigationManager,
-        private val themeSongPlayer: ThemeSongPlayer,
         private val userPreferencesService: UserPreferencesService,
         private val mediaManagementService: MediaManagementService,
         private val musicService: MusicService,
@@ -674,24 +672,10 @@ class CollectionFolderViewModel
         }
 
         override fun navigateTo(destination: Destination) {
-            release()
             navigationManager.navigateTo(destination)
         }
 
-        fun release() {
-            themeSongPlayer.stop()
-        }
 
-        fun onResumePage() {
-            viewModelScope.launchIO {
-                state.value.item.successValue?.let {
-                    Timber.v("onResumePage: %s", state.value.items::class)
-                    if (it.type == BaseItemKind.BOX_SET && state.value.items !is DataLoadingState.Error) {
-                        themeSongPlayer.playThemeFor(it.id)
-                    }
-                }
-            }
-        }
 
         override fun deleteItem(
             index: Int,
@@ -840,13 +824,6 @@ fun CollectionFolderView(
         },
 ) {
     val state by viewModel.state.collectAsState()
-    LifecycleResumeEffect(itemId) {
-        viewModel.onResumePage()
-
-        onPauseOrDispose {
-            viewModel.release()
-        }
-    }
     CollectionFolderViewContent(
         preferences = preferences,
         state = state,
