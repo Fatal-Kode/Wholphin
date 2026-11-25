@@ -53,24 +53,27 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           HAS_SIGNING_KEY: ${{ secrets.SIGNING_KEY != '' && secrets.KEY_ALIAS != '' && secrets.KEY_PASSWORD != '' && secrets.KEY_STORE_PASSWORD != '' }}
         run: |
-          if [[ "$HAS_SIGNING_KEY" != true ]]; then
-            echo "::notice::Test APKs are available in artifacts. Configure the persistent signing secrets to publish in-place updates."
-            exit 0
-          fi
-          tag=sd-deinterlace-updates
           version="0.0.0-$GITHUB_RUN_NUMBER-g${GITHUB_SHA:0:8}"
-          notes="Wholphin Mi Box build from commit $GITHUB_SHA."
+          if [[ "$HAS_SIGNING_KEY" == true ]]; then
+            tag=sd-deinterlace-updates
+            notes="Mi Box build from $GITHUB_SHA, signed for in-place updates."
+          else
+            tag=sd-deinterlace-preview
+            notes="Mi Box test APK from $GITHUB_SHA. This preview uses a temporary debug key. For in-place updates, configure the signing secrets and install the sd-deinterlace-updates release."
+          fi
           signer="$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/apksigner"
           fingerprint() {
             "$signer" verify --print-certs "$1" | sed -n 's/^Signer #1 certificate SHA-256 digest: //p'
           }
           existing=$(gh release list --limit 1000 --json tagName --jq ".[] | select(.tagName == \"$tag\") | .tagName")
           if [[ -n "$existing" ]]; then
-            mkdir previous
-            gh release download "$tag" --pattern Wholphin-debug-arm64-v8a.apk --dir previous
-            old=$(fingerprint previous/Wholphin-debug-arm64-v8a.apk)
-            new=$(fingerprint release-apks/Wholphin-debug-arm64-v8a.apk)
-            [[ -n "$new" && "$new" == "$old" ]] || { echo "::error::Signing certificate changed"; exit 1; }
+            if [[ "$tag" == sd-deinterlace-updates ]]; then
+              mkdir previous
+              gh release download "$tag" --pattern Wholphin-debug-arm64-v8a.apk --dir previous
+              old=$(fingerprint previous/Wholphin-debug-arm64-v8a.apk)
+              new=$(fingerprint release-apks/Wholphin-debug-arm64-v8a.apk)
+              [[ -n "$new" && "$new" == "$old" ]] || { echo "::error::Signing certificate changed"; exit 1; }
+            fi
             gh release upload "$tag" release-apks/*.apk --clobber
             gh release edit "$tag" --title "$version" --notes "$notes" --prerelease --latest=false
           else
