@@ -179,13 +179,11 @@ class MainActivity : AppCompatActivity() {
             }
         if (restoredBackStack != null) {
             Timber.d("Restoring back stack")
-            var backStack = restoredBackStack
-            run {
-                val lastDest = backStack.lastOrNull()
-                if (lastDest.isPlayback) {
-                    Timber.v("Restoring back stack without playback")
-                    backStack = backStack.toMutableList().apply { removeAt(lastIndex) }
-                }
+            val backStack = if (restoredBackStack.lastOrNull().isPlayback) {
+                Timber.v("Restoring back stack without playback")
+                restoredBackStack.dropLast(1)
+            } else {
+                restoredBackStack
             }
             navigationManager.backStack = NavBackStack(*backStack.toTypedArray())
         } else {
