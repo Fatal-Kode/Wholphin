@@ -24,12 +24,44 @@ jobs:
       - uses: ./.github/actions/setup
       - name: Build release APK
         env:
+          WHOLPHIN_SIGNING_BUNDLE: ${{ secrets.WHOLPHIN_SIGNING_BUNDLE }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
         run: |
-          ./gradlew assembleDefaultRelease "-PforkVersionName=1.2.$GITHUB_RUN_NUMBER" "-PforkVersionCode=$((10000 + GITHUB_RUN_NUMBER))"
+          python3 - <<'PY'
+          import base64
+          import json
+          import os
+          import subprocess
+
+          names = ("KEY_ALIAS", "KEY_PASSWORD", "KEY_STORE_PASSWORD", "SIGNING_KEY")
+          env = os.environ.copy()
+          bundle = env.pop("WHOLPHIN_SIGNING_BUNDLE", "")
+          if bundle:
+              try:
+                  values = json.loads(bundle)
+                  for name in names:
+                      value = values[name]
+                      if not isinstance(value, str) or not value.strip() or "\n" in value or "\r" in value:
+                          raise ValueError()
+                      env[name] = value
+                  base64.b64decode(env["SIGNING_KEY"], validate=True)
+              except (KeyError, TypeError, ValueError):
+                  raise SystemExit("Invalid WHOLPHIN_SIGNING_BUNDLE. Paste the complete bundle into the secret.") from None
+              for name in names:
+                  print("::add-mask::" + env[name], flush=True)
+          if not all(env.get(name) for name in names):
+              raise SystemExit("Add WHOLPHIN_SIGNING_BUNDLE to the repository's Actions secrets.")
+          number = int(env["GITHUB_RUN_NUMBER"])
+          subprocess.run(
+              ["./gradlew", "assembleDefaultRelease", f"-PforkVersionName=1.2.{number}",
+               f"-PforkVersionCode={10000 + number}"],
+              env=env,
+              check=True,
+          )
+          PY
       - name: Upload build output
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
@@ -39,12 +71,7 @@ jobs:
       - name: Publish signed release and tag
         env:
           GH_TOKEN: ${{ github.token }}
-          HAS_SIGNING_KEY: ${{ secrets.SIGNING_KEY != '' && secrets.KEY_ALIAS != '' && secrets.KEY_PASSWORD != '' && secrets.KEY_STORE_PASSWORD != '' }}
         run: |
-          if [[ "$HAS_SIGNING_KEY" != true ]]; then
-            echo "::error::Add the persistent signing secrets to publish installable releases."
-            exit 1
-          fi
           version="1.2.$GITHUB_RUN_NUMBER"
           code=$((10000 + GITHUB_RUN_NUMBER))
           tag="v$version"
