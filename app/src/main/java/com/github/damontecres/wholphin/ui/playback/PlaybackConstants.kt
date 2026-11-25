@@ -77,6 +77,7 @@ val BaseItemKind.playable: Boolean
             BaseItemKind.SEASON,
             BaseItemKind.SERIES,
             BaseItemKind.STUDIO,
+            BaseItemKind.TRAILER,
             BaseItemKind.USER_ROOT_FOLDER,
             BaseItemKind.USER_VIEW,
             BaseItemKind.YEAR,
