@@ -55,7 +55,6 @@ import com.github.damontecres.wholphin.services.DownloadCallback
 import com.github.damontecres.wholphin.services.NavigationManager
 import com.github.damontecres.wholphin.services.Release
 import com.github.damontecres.wholphin.services.UpdateChecker
-import com.github.damontecres.wholphin.services.UserPreferencesService
 import com.github.damontecres.wholphin.ui.OneTimeLaunchedEffect
 import com.github.damontecres.wholphin.ui.PreviewTvSpec
 import com.github.damontecres.wholphin.ui.components.BasicDialog
@@ -85,7 +84,6 @@ import javax.inject.Inject
 class UpdateViewModel
     @Inject
     constructor(
-        private val userPreferencesService: UserPreferencesService,
         val updater: UpdateChecker,
         val navigationManager: NavigationManager,
     ) : ViewModel(),
@@ -101,9 +99,8 @@ class UpdateViewModel
         fun init() {
             _state.update { it.copy(loading = LoadingState.Loading) }
             viewModelScope.launchIO {
-                val updateUrl = userPreferencesService.getCurrent().appPreferences.updateUrl
                 try {
-                    val release = updater.getLatestRelease(updateUrl)
+                    val release = updater.getLatestRelease()
                     _state.update {
                         it.copy(
                             loading = LoadingState.Success,
@@ -112,7 +109,7 @@ class UpdateViewModel
                         )
                     }
                 } catch (ex: Exception) {
-                    Timber.e(ex, "Error fetching release from %s", updateUrl)
+                    Timber.e(ex, "Error fetching Wholphin release")
                     _state.update { it.copy(loading = LoadingState.Error(ex)) }
                 }
             }

@@ -31,7 +31,6 @@ val supportedCollectionTypes =
         CollectionType.LIVETV,
         CollectionType.MUSICVIDEOS,
         CollectionType.FOLDERS,
-        CollectionType.MUSIC,
         CollectionType.PHOTOS,
         null, // Mixed
     )

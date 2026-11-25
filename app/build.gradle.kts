@@ -31,8 +31,6 @@ val ffmpegModuleExists =
     providers.provider { project.file("libs/lib-decoder-ffmpeg-release.aar").exists() }
 val av1ModuleExists =
     providers.provider { project.file("libs/lib-decoder-av1-release.aar").exists() }
-val mpvModuleExists =
-    providers.provider { project.file("libs/wholphin-mpv-release.aar").exists() }
 val extensionsRepoActive =
     providers.provider { project.hasProperty("WholphinExtensionsUsername") }
 
@@ -158,13 +156,13 @@ configure<ApplicationExtension> {
             isDefault = true
             manifestPlaceholders += mapOf(featureLeanback to false)
             setFeatureFlag(featureUpdate, true)
-            setFeatureFlag(featureDiscover, true)
+            setFeatureFlag(featureDiscover, false)
         }
         create("appstore") {
             dimension = "version"
             manifestPlaceholders += mapOf(featureLeanback to true)
             setFeatureFlag(featureUpdate, false)
-            setFeatureFlag(featureDiscover, true)
+            setFeatureFlag(featureDiscover, false)
         }
         create("firetv") {
             dimension = "version"
@@ -393,17 +391,6 @@ dependencies {
     } else {
         logger.warn("Media3 av1 decoder was NOT found")
     }
-    if (mpvModuleExists.get()) {
-        logger.info("Using local libMPV build")
-        implementation(files("libs/wholphin-mpv-release.aar"))
-    } else if (extensionsRepoActive.get()) {
-        logger.info("Using prebuilt libMPV")
-        implementation(libs.wholphin.extensions.mpv)
-    } else {
-        logger.warn("libMPV was NOT found, using stub library")
-        implementation(project(":wholphin-mpv-stub"))
-    }
-
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
     testImplementation(libs.mockk.android)

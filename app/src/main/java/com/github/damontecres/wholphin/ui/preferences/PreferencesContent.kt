@@ -144,7 +144,7 @@ fun PreferencesContent(
 
     val updateState by updateVM.state.collectAsState()
     val release = updateState.release
-    LaunchedEffect(preferences.updateUrl, preferences.autoCheckForUpdates) {
+    LaunchedEffect(preferences.autoCheckForUpdates) {
         if (UpdateChecker.ACTIVE && preferences.autoCheckForUpdates) {
             updateVM.init()
         }
@@ -184,22 +184,6 @@ fun PreferencesContent(
     LaunchedEffect(Unit) {
         // Forces the animated to trigger
         visible = true
-    }
-
-    LaunchedEffect(preferences.playbackPreferences.playerBackend) {
-        if (preferences.playbackPreferences.playerBackend == PlayerBackend.MPV) {
-            Timber.d("Checking for libmpv")
-            try {
-                System.loadLibrary("mpv")
-                System.loadLibrary("player")
-            } catch (ex: UnsatisfiedLinkError) {
-                Timber.w(ex, "Could not load libmpv")
-                showToast(context, "MPV is not supported on this device")
-                viewModel.preferenceDataStore.updateData {
-                    it.updatePlaybackPreferences { playerBackend = PlayerBackend.EXO_PLAYER }
-                }
-            }
-        }
     }
 
     val showUpdate =

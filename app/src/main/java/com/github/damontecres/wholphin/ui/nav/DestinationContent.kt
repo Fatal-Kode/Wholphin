@@ -80,39 +80,9 @@ fun DestinationContent(
             HomeSettingsPage(preferences, modifier)
         }
 
-        is Destination.Playback -> {
-            val backend =
-                destination.backend ?: preferences.appPreferences.playbackPreferences.playerBackend
-            if (backend == PlayerBackend.EXTERNAL_PLAYER) {
-                PlayExternalPage(
-                    preferences = preferences,
-                    destination = destination,
-                    modifier = modifier,
-                )
-            } else {
-                PlaybackPage(
-                    preferences = preferences,
-                    destination = destination,
-                    modifier = modifier,
-                )
-            }
-        }
-
-        is Destination.PlaybackList -> {
-            if (preferences.appPreferences.playbackPreferences.playerBackend == PlayerBackend.EXTERNAL_PLAYER) {
-                PlayExternalPage(
-                    preferences = preferences,
-                    destination = destination,
-                    modifier = modifier,
-                )
-            } else {
-                PlaybackPage(
-                    preferences = preferences,
-                    destination = destination,
-                    modifier = modifier,
-                )
-            }
-        }
+        is Destination.Playback,
+        is Destination.PlaybackList,
+        -> PlaybackPage(preferences = preferences, destination = destination, modifier = modifier)
 
         is Destination.Settings -> {
             PreferencesPage(
@@ -253,34 +223,6 @@ fun DestinationContent(
                     )
                 }
 
-                BaseItemKind.MUSIC_ALBUM -> {
-                    LaunchedEffect(Unit) { onClearBackdrop.invoke() }
-                    AlbumDetailsPage(
-                        preferences = preferences,
-                        itemId = destination.itemId,
-                        initialSongId = destination.initialSongId,
-                        modifier = modifier,
-                    )
-                }
-
-                BaseItemKind.MUSIC_ARTIST -> {
-                    LaunchedEffect(Unit) { onClearBackdrop.invoke() }
-                    ArtistDetailsPage(
-                        preferences = preferences,
-                        itemId = destination.itemId,
-                        modifier = modifier,
-                    )
-                }
-
-                BaseItemKind.AUDIO -> {
-                    LaunchedEffect(Unit) { onClearBackdrop.invoke() }
-                    SongDetailsPage(
-                        preferences = preferences,
-                        itemId = destination.itemId,
-                        modifier = modifier,
-                    )
-                }
-
                 else -> {
                     Timber.w("Unsupported item type: ${destination.type}")
                     Text("Unsupported item type: ${destination.type}", modifier)
@@ -350,9 +292,7 @@ fun DestinationContent(
             )
         }
 
-        Destination.NowPlaying -> {
-            NowPlayingPage(modifier)
-        }
+        Destination.NowPlaying -> HomePage(preferences = preferences, modifier = modifier)
 
         Destination.UpdateApp -> {
             InstallUpdatePage(preferences, modifier)
@@ -375,59 +315,10 @@ fun DestinationContent(
             DebugPage(preferences, modifier)
         }
 
-        Destination.Discover -> {
-            LaunchedEffect(Unit) { onClearBackdrop.invoke() }
-            DiscoverPage(
-                preferences = preferences,
-                modifier = modifier,
-            )
-        }
-
-        is Destination.DiscoveredItem -> {
-            when (destination.item.type) {
-                SeerrItemType.MOVIE -> {
-                    DiscoverMovieDetails(
-                        preferences = preferences,
-                        destination = destination,
-                        modifier = modifier,
-                    )
-                }
-
-                SeerrItemType.TV -> {
-                    DiscoverSeriesDetails(
-                        preferences = preferences,
-                        destination = destination,
-                        modifier = modifier,
-                    )
-                }
-
-                SeerrItemType.PERSON -> {
-                    LaunchedEffect(Unit) { onClearBackdrop.invoke() }
-                    DiscoverPersonPage(
-                        person = destination.item,
-                        startIndex = destination.startIndex,
-                        modifier = modifier,
-                    )
-                }
-
-                SeerrItemType.UNKNOWN -> {
-                    Text(
-                        text = "Unknown discover type",
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-            }
-        }
-
-        is Destination.DiscoverMoreResult -> {
-            LaunchedEffect(Unit) { onClearBackdrop.invoke() }
-            DiscoverRequestGrid(
-                destination = destination,
-                showTitle = true,
-                positionCallback = { _, _ -> },
-                modifier = modifier,
-            )
-        }
+        Destination.Discover,
+        is Destination.DiscoveredItem,
+        is Destination.DiscoverMoreResult,
+        -> HomePage(preferences = preferences, modifier = modifier)
     }
 }
 
@@ -486,13 +377,7 @@ fun CollectionFolder(
             )
         }
 
-        CollectionType.MUSIC -> {
-            CollectionFolderMusic(
-                preferences,
-                destination,
-                modifier,
-            )
-        }
+        CollectionType.MUSIC -> Unit
 
         CollectionType.HOMEVIDEOS,
         CollectionType.PHOTOS,

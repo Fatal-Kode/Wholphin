@@ -325,6 +325,7 @@ class PlaylistCreator
         private suspend fun List<BaseItemDto>.convertAndAddParts(useSeriesForPrimary: Boolean = false): List<PlaylistItem> =
             buildList {
                 this@convertAndAddParts
+                    .filterNot { it.type == BaseItemKind.AUDIO }
                     .filter { it.locationType != LocationType.VIRTUAL }
                     .forEach { ep ->
                         add(PlaylistItem.Media(BaseItem(ep, useSeriesForPrimary)))

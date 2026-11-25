@@ -624,17 +624,6 @@ sealed interface AppPreference<Pref, T> {
                 summaryOff = R.string.disabled,
             )
 
-        val UpdateUrl =
-            AppStringPreference<AppPreferences>(
-                title = R.string.update_url,
-                defaultValue = "https://api.github.com/repos/Fatal-Kode/Wholphin/releases/latest",
-                getter = { it.updateUrl },
-                setter = { prefs, value ->
-                    prefs.update { updateUrl = value }
-                },
-                summary = R.string.update_url_summary,
-            )
-
         val OssLicenseInfo =
             AppDestinationPreference<AppPreferences>(
                 title = R.string.license_info,
@@ -1217,9 +1206,6 @@ val basicPreferences =
             title = R.string.more,
             preferences =
                 buildList {
-                    if (BuildConfig.DISCOVER_ENABLED) {
-                        add(AppPreference.SeerrIntegration)
-                    }
                     add(AppPreference.AdvancedSettings)
                 },
         ),
@@ -1332,30 +1318,8 @@ val advancedPreferences =
         )
         add(
             PreferenceGroup(
-                title = R.string.player_backend,
-                preferences = listOf(AppPreference.PlayerBackendPref),
-                conditionalPreferences =
-                    listOf(
-                        ConditionalPreferences(
-                            { it.playbackPreferences.playerBackend == PlayerBackend.EXO_PLAYER },
-                            ExoPlayerSettings,
-                        ),
-                        ConditionalPreferences(
-                            { it.playbackPreferences.playerBackend == PlayerBackend.MPV },
-                            MpvSettings,
-                        ),
-                        ConditionalPreferences(
-                            { it.playbackPreferences.playerBackend == PlayerBackend.PREFER_MPV },
-                            listOf(
-                                AppPreference.ExoPlayerSettings,
-                                AppPreference.MpvSettings,
-                            ),
-                        ),
-                        ConditionalPreferences(
-                            { it.playbackPreferences.playerBackend == PlayerBackend.EXTERNAL_PLAYER },
-                            listOf(AppPreference.ExternalPlayerApp),
-                        ),
-                    ),
+                title = R.string.exoplayer,
+                preferences = ExoPlayerSettings,
             ),
         )
         if (UpdateChecker.ACTIVE) {
@@ -1365,7 +1329,6 @@ val advancedPreferences =
                     preferences =
                         listOf(
                             AppPreference.AutoCheckForUpdates,
-                            AppPreference.UpdateUrl,
                         ),
                 ),
             )

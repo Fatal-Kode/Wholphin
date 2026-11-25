@@ -198,7 +198,6 @@ fun ContextMenu(
     val resources = LocalResources.current
     var chooseVersion by remember { mutableStateOf<DialogParams?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var showPlayWithDialog by remember { mutableStateOf(false) }
 
     val dialogItems =
         remember(resources, item, chosenStreams) {
@@ -266,7 +265,6 @@ fun ContextMenu(
                     actions.onClearChosenStreams.invoke(chosenStreams)
                 },
                 onClickDelete = { showDeleteDialog = true },
-                onClickPlayWith = { showPlayWithDialog = true },
             )
         }
     DialogPopup(
@@ -301,31 +299,7 @@ fun ContextMenu(
             elevation = 3.dp,
         )
     }
-    if (showPlayWithDialog) {
-        val dialogItems =
-            remember {
-                buildPlayWith(resources) { transcode, backend ->
-                    onDismissRequest.invoke()
-                    actions.navigateTo(
-                        Destination.Playback(
-                            itemId = item.id,
-                            positionMs = item.resumeMs,
-                            forceTranscoding = transcode,
-                            backend = backend,
-                        ),
-                    )
-                }
-            }
-        DialogPopup(
-            showDialog = true,
-            title = stringResource(R.string.play_with),
-            dialogItems = dialogItems,
-            onDismissRequest = { showPlayWithDialog = false },
-            dismissOnClick = true,
-            waitToLoad = false,
-            elevation = 3.dp,
-        )
-    }
+
 }
 
 private fun buildContextMenuItems(
@@ -343,7 +317,6 @@ private fun buildContextMenuItems(
     onShowOverview: () -> Unit,
     onClearChosenStreams: () -> Unit,
     onClickDelete: () -> Unit,
-    onClickPlayWith: () -> Unit,
 ): List<DialogItem> =
     buildList {
         // Songs should not show Go to
@@ -631,16 +604,6 @@ private fun buildContextMenuItems(
                 },
             )
         }
-        if (item.type in supportedPlayableTypes) {
-            add(
-                DialogItem(
-                    resources.getString(R.string.play_with),
-                    Icons.Default.PlayArrow,
-                    dismissOnClick = false,
-                    onClick = onClickPlayWith,
-                ),
-            )
-        }
         if (item.data.mediaSources?.isNotEmpty() == true) {
             add(
                 DialogItem(
@@ -653,35 +616,6 @@ private fun buildContextMenuItems(
             )
         }
     }
-
-private fun buildPlayWith(
-    resources: Resources,
-    onClick: (Boolean, PlayerBackend?) -> Unit,
-) = buildList {
-    val entries =
-        PlayerBackend.entries
-            .filterNot { it == PlayerBackend.UNRECOGNIZED }
-            .zip(resources.getStringArray(R.array.player_backend_options))
-            .filterNot { it.first == PlayerBackend.PREFER_MPV }
-    entries.forEach { (backend, title) ->
-        add(
-            DialogItem(
-                title,
-                dismissOnClick = true,
-            ) {
-                onClick.invoke(false, backend)
-            },
-        )
-    }
-    add(
-        DialogItem(
-            resources.getString(R.string.transcoding),
-            dismissOnClick = true,
-        ) {
-            onClick.invoke(true, null)
-        },
-    )
-}
 
 @Composable
 fun ContextMenu(

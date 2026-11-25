@@ -85,41 +85,6 @@ class NavDrawerService
                 }
             }
 
-            // Handle when music is actively playing or not
-            coroutineScope.launchDefault {
-                musicService.state.collectLatest { music ->
-                    Timber.v("MusicService updated")
-                    when (music.status) {
-                        NowPlayingStatus.PLAYING -> {
-                            _state.update {
-                                it.copy(
-                                    nowPlayingEnabled = true,
-                                    nowPlayingTitle = music.currentItemTitle,
-                                )
-                            }
-                        }
-
-                        NowPlayingStatus.IDLE -> {
-                            _state.update {
-                                it.copy(
-                                    nowPlayingEnabled = false,
-                                    nowPlayingTitle = null,
-                                )
-                            }
-                        }
-
-                        NowPlayingStatus.PAUSED -> {
-                            delay(2.hours)
-                            _state.update {
-                                it.copy(
-                                    nowPlayingEnabled = false,
-                                    nowPlayingTitle = null,
-                                )
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         /**

@@ -74,7 +74,6 @@ class UpdateChecker
          * This is safe to call many times because it will only show the toast at most once every 12 hours
          */
         suspend fun maybeShowUpdateToast(
-            updateUrl: String,
             showNegativeToast: Boolean = false,
         ) {
             val pref = PreferenceManager.getDefaultSharedPreferences(context)
@@ -91,7 +90,7 @@ class UpdateChecker
             val timeSince = (now.time - lastUpdateCheck).milliseconds
             Timber.v("Last successful update check was $timeSince ago")
             val installedVersion = getInstalledVersion()
-            val latestRelease = getLatestRelease(updateUrl)
+            val latestRelease = getLatestRelease()
             if (latestRelease != null && latestRelease.version.isGreaterThan(installedVersion)) {
                 Timber.v("Update available $installedVersion => ${latestRelease.version}")
                 pref.edit {
@@ -144,21 +143,12 @@ class UpdateChecker
         /**
          * Get the latest released version
          */
-        suspend fun getLatestRelease(updateUrl: String): Release? =
+        suspend fun getLatestRelease(): Release? =
             withContext(WholphinDispatchers.IO) {
                 val request =
                     Request
                         .Builder()
-                        .url(
-                            when (updateUrl) {
-                                "",
-                                "https://api.github.com/repos/Fatal-Kode/Wholphin/releases/tags/sd-deinterlace-test",
-                                "https://api.github.com/repos/Fatal-Kode/Wholphin/releases/tags/sd-deinterlace-preview",
-                                "https://api.github.com/repos/Fatal-Kode/Wholphin/releases/tags/sd-deinterlace-updates",
-                                -> UPDATE_FEED
-                                else -> updateUrl
-                            },
-                        )
+                        .url(UPDATE_FEED)
                         .get()
                         .build()
                 getRelease(request)

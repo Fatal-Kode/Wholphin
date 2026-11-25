@@ -110,15 +110,6 @@ class DebugViewModel
             }
         }
 
-        val libMpvLoaded by lazy {
-            try {
-                System.loadLibrary("player")
-                System.loadLibrary("mpv")
-                true
-            } catch (_: Exception) {
-                false
-            }
-        }
 
         init {
             viewModelScope.launchDefault {
@@ -153,7 +144,6 @@ class DebugViewModel
                         "Build time: $buildTime",
                         "FFMPEG included: $ffmpegIncluded",
                         "AV1 included: $av1Included",
-                        "libmpv loaded: $libMpvLoaded",
                         "Debug enabled: ${BuildConfig.DEBUG}",
                         "ABIs: ${Build.SUPPORTED_ABIS.toList()}",
                     ) + installInfo

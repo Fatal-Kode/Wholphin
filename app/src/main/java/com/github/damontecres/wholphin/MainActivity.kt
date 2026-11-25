@@ -61,7 +61,6 @@ import com.github.damontecres.wholphin.ui.collectLatestIn
 import com.github.damontecres.wholphin.ui.components.LoadingPage
 import com.github.damontecres.wholphin.ui.launchDefault
 import com.github.damontecres.wholphin.ui.nav.Destination
-import com.github.damontecres.wholphin.ui.playback.PlayExternalViewModel
 import com.github.damontecres.wholphin.ui.showToast
 import com.github.damontecres.wholphin.ui.theme.WholphinTheme
 import com.github.damontecres.wholphin.ui.theme.colors.PurpleThemeColors
@@ -91,7 +90,6 @@ import kotlin.time.Duration.Companion.milliseconds
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
     private val viewModel: MainActivityViewModel by viewModels()
-    private val playExternalViewModel: PlayExternalViewModel by viewModels()
 
     @Inject
     lateinit var userPreferencesDataStore: DataStore<AppPreferences>
@@ -151,7 +149,6 @@ class MainActivity : AppCompatActivity() {
     lateinit var intentService: IntentService
 
     private var signInAuto = true
-    private var playerBackend: PlayerBackend? = null
 
     private val json =
         Json {
@@ -183,7 +180,7 @@ class MainActivity : AppCompatActivity() {
         if (restoredBackStack != null) {
             Timber.d("Restoring back stack")
             var backStack = restoredBackStack
-            if (!playExternalViewModel.launched.value) {
+            run {
                 val lastDest = backStack.lastOrNull()
                 if (lastDest.isPlayback) {
                     Timber.v("Restoring back stack without playback")
@@ -224,7 +221,6 @@ class MainActivity : AppCompatActivity() {
 
         userPreferencesDataStore.data.collectLatestIn(lifecycleScope) { prefs ->
             signInAuto = prefs.signInAutomatically
-            playerBackend = prefs.playbackPreferences.playerBackend
         }
 
         viewModel.appStart(intent)
@@ -310,7 +306,7 @@ class MainActivity : AppCompatActivity() {
         super.onRestart()
         Timber.d("onRestart")
         viewModel.appStart(null)
-        if (!playExternalViewModel.launched.value) {
+        run {
             // If restarting during playback that is not external, go back a page
             val lastDest = navigationManager.backStack.lastOrNull()
             if (lastDest.isPlayback) {
@@ -340,9 +336,7 @@ class MainActivity : AppCompatActivity() {
             val appPreferences = userPreferencesDataStore.data.first()
             if (UpdateChecker.ACTIVE && appPreferences.autoCheckForUpdates) {
                 try {
-                    updateChecker.maybeShowUpdateToast(
-                        appPreferences.updateUrl,
-                    )
+                    updateChecker.maybeShowUpdateToast()
                 } catch (ex: Exception) {
                     Timber.w(
                         ex,
@@ -364,7 +358,6 @@ class MainActivity : AppCompatActivity() {
             // the back stack rather than crashing in onSaveInstanceState.
             Timber.w(ex, "Could not persist back stack; skipping")
         }
-        outState.putBoolean(KEY_EXTERNAL_PLAYER, playerBackend == PlayerBackend.EXTERNAL_PLAYER)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -408,7 +401,6 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val KEY_BACK_STACK = "backStack"
-        private const val KEY_EXTERNAL_PLAYER = "extPlayer"
 
         lateinit var instance: MainActivity
             private set

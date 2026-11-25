@@ -37,7 +37,6 @@ import com.github.damontecres.wholphin.data.model.Playlist
 import com.github.damontecres.wholphin.data.model.PlaylistItem
 import com.github.damontecres.wholphin.data.model.SeriesTrackChoiceType
 import com.github.damontecres.wholphin.data.model.TrackIndex
-import com.github.damontecres.wholphin.mpv.MpvPlayer
 import com.github.damontecres.wholphin.preferences.AppPreference
 import com.github.damontecres.wholphin.preferences.PlayerBackend
 import com.github.damontecres.wholphin.preferences.ShowNextUpWhen
@@ -63,7 +62,6 @@ import com.github.damontecres.wholphin.ui.launchDefault
 import com.github.damontecres.wholphin.ui.launchIO
 import com.github.damontecres.wholphin.ui.nav.Destination
 import com.github.damontecres.wholphin.ui.onMain
-import com.github.damontecres.wholphin.ui.preferences.subtitle.SubtitleSettings.applyToMpv
 import com.github.damontecres.wholphin.ui.seekBack
 import com.github.damontecres.wholphin.ui.seekForward
 import com.github.damontecres.wholphin.ui.showToast
@@ -73,7 +71,6 @@ import com.github.damontecres.wholphin.util.PlaybackItemState
 import com.github.damontecres.wholphin.util.TrackActivityPlaybackListener
 import com.github.damontecres.wholphin.util.WholphinDispatchers
 import com.github.damontecres.wholphin.util.checkForSupport
-import com.github.damontecres.wholphin.util.mpv.mpvDeviceProfile
 import com.github.damontecres.wholphin.util.profile.Codec
 import com.github.damontecres.wholphin.util.subtitleMimeTypes
 import com.github.damontecres.wholphin.util.supportItemKinds
@@ -233,28 +230,8 @@ class PlaybackViewModel
             jobs.forEach { it.cancel() }
         }
 
-        private suspend fun createPlayer(
-            isHdr: Boolean,
-            is4k: Boolean,
-        ) {
-            val softwareDecoding =
-                !preferences.appPreferences.playbackPreferences.mpvOptions.enableHardwareDecoding
-            val requestBackend =
-                (destination as? Destination.Playback)?.backend
-                    ?: preferences.appPreferences.playbackPreferences.playerBackend
-            val playerBackend =
-                when (requestBackend) {
-                    PlayerBackend.UNRECOGNIZED,
-                    PlayerBackend.EXO_PLAYER,
-                    -> PlayerBackend.EXO_PLAYER
-
-                    PlayerBackend.MPV -> PlayerBackend.MPV
-
-                    PlayerBackend.PREFER_MPV -> if (isHdr || (is4k && softwareDecoding)) PlayerBackend.EXO_PLAYER else PlayerBackend.MPV
-
-                    PlayerBackend.EXTERNAL_PLAYER -> throw IllegalStateException("Cannot use this for external playback")
-                }
-
+        private suspend fun createPlayer() {
+            val playerBackend = PlayerBackend.EXO_PLAYER
             Timber.d("Selected backend: %s", playerBackend)
             if (currentPlayer.value?.backend != playerBackend) {
                 Timber.i("Switching player backend to %s", playerBackend)
@@ -533,8 +510,7 @@ class PlaybackViewModel
                             SimpleVideoStream(it.index, isHdr, is4k)
                         }
 
-                // Create the correct player for the media
-                createPlayer(videoStream?.hdr == true, videoStream?.is4k == true)
+                createPlayer()
 
                 val subtitleStreams = mediaSource?.let { getSubtitleStreams(mediaSource) }.orEmpty()
                 val audioStreams = mediaSource?.let { getAudioStreams(mediaSource) }.orEmpty()
@@ -689,15 +665,10 @@ class PlaybackViewModel
                             itemId,
                             PlaybackInfoDto(
                                 startTimeTicks = null,
-                                deviceProfile =
-                                    if (currentPlayer.value!!.backend == PlayerBackend.EXO_PLAYER) {
-                                        deviceProfileService.getOrCreateDeviceProfile(
-                                            preferences.appPreferences,
-                                            serverRepository.currentServer?.serverVersion,
-                                        )
-                                    } else {
-                                        mpvDeviceProfile
-                                    },
+                                deviceProfile = deviceProfileService.getOrCreateDeviceProfile(
+                                    preferences.appPreferences,
+                                    serverRepository.currentServer?.serverVersion,
+                                ),
                                 maxAudioChannels = null,
                                 audioStreamIndex = audioIndex,
                                 subtitleStreamIndex = subtitleIndex,
@@ -871,21 +842,16 @@ class PlaybackViewModel
                             positionMs,
                         )
                         val onFailure: () -> Unit = {
-                            if (player is MpvPlayer && externalSubtitle != null) {
-                                // MpvPlayer may change tracks more than once to add external subtitles
-                                trackChangeListener?.let { player.addListener(it) }
-                            } else {
-                                viewModelScope.launchIO {
-                                    changeStreams(
-                                        item = item,
-                                        sourceId = sourceId,
-                                        audioIndex = audioIndex,
-                                        subtitleIndex = subtitleIndex,
-                                        positionMs = positionMs,
-                                        enableDirectPlay = false,
-                                        enableDirectStream = true,
-                                    )
-                                }
+                            viewModelScope.launchIO {
+                                changeStreams(
+                                    item = item,
+                                    sourceId = sourceId,
+                                    audioIndex = audioIndex,
+                                    subtitleIndex = subtitleIndex,
+                                    positionMs = positionMs,
+                                    enableDirectPlay = false,
+                                    enableDirectStream = true,
+                                )
                             }
                         }
                         val onTracksChangedListener =
@@ -1708,37 +1674,6 @@ class PlaybackViewModel
 
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             screensaverService.keepScreenOn(isPlaying)
-        }
-
-        override fun onAvailableCommandsChanged(availableCommands: Player.Commands) {
-            val player = this@PlaybackViewModel.player
-            if (availableCommands.contains(Player.COMMAND_PREPARE) && player is MpvPlayer) {
-                // MpvPlayer is initialized, so configure subtitles
-                Timber.i("Applying subtitle config to MPV")
-                viewModelScope.launchDefault {
-                    val configuration = context.resources.configuration
-                    val density = Density(context.resources.displayMetrics.density)
-                    preferences.appPreferences.interfacePreferences.subtitlesPreferences.applyToMpv(
-                        configuration,
-                        density,
-                    )
-                }
-            }
-        }
-
-        fun updateDensity(density: Density) {
-            Timber.d("Density changed")
-            viewModelScope.launchDefault {
-                val availableCommands = onMain { player.availableCommands }
-                if (availableCommands.contains(Player.COMMAND_PREPARE) && player is MpvPlayer) {
-                    Timber.i("Applying density change for subtitle config to MPV")
-                    val configuration = context.resources.configuration
-                    preferences.appPreferences.interfacePreferences.subtitlesPreferences.applyToMpv(
-                        configuration,
-                        density,
-                    )
-                }
-            }
         }
 
         override fun onBandwidthEstimate(

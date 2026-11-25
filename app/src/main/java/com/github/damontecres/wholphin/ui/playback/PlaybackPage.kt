@@ -69,7 +69,6 @@ import androidx.media3.ui.compose.state.rememberPlayPauseButtonState
 import androidx.media3.ui.compose.state.rememberPresentationState
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.surfaceColorAtElevation
-import com.github.damontecres.wholphin.mpv.MpvPlayer
 import com.github.damontecres.wholphin.preferences.AssPlaybackMode
 import com.github.damontecres.wholphin.preferences.DpadSeekMode
 import com.github.damontecres.wholphin.preferences.PlayerBackend
@@ -166,29 +165,15 @@ fun PlaybackPageContent(
     val prefs = preferences.appPreferences.playbackPreferences
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
-    LaunchedEffect(density) { viewModel.updateDensity(density) }
     val userDto by viewModel.currentUserDto.collectAsState()
 
     var showDebugInfo by remember { mutableStateOf(prefs.showDebugInfo) }
 
     var playbackDialog by remember { mutableStateOf<PlaybackDialogType?>(null) }
 
-    var contentScale by remember(playerBackend) {
-        mutableStateOf(
-            if (playerBackend == PlayerBackend.MPV) {
-                ContentScale.FillBounds
-            } else {
-                prefs.globalContentScale.scale
-            },
-        )
-    }
+    var contentScale by remember { mutableStateOf(prefs.globalContentScale.scale) }
     var playbackSpeed by remember { mutableFloatStateOf(1.0f) }
     LaunchedEffect(playbackSpeed) { player.setPlaybackSpeed(playbackSpeed) }
-
-    LaunchedEffect(state.currentPlayback?.subtitleDelay) {
-        (player as? MpvPlayer)?.subtitleDelay =
-            state.currentPlayback?.subtitleDelay ?: Duration.ZERO
-    }
 
     val presentationState = rememberPresentationState(player, false)
     val playbackState by rememberPlayerState(player)
@@ -755,7 +740,7 @@ fun PlaybackPageContent(
                         remember(userDto) { userDto?.policy?.let { it.isAdministrator || it.enableSubtitleManagement } == true },
                     // TODO Passing through audio prevents changing playback speed
                     // See https://github.com/damontecres/Wholphin/issues/164
-                    playbackSpeedEnabled = playerBackend == PlayerBackend.MPV || state.currentPlayback?.audioDecoder != null,
+                    playbackSpeedEnabled = state.currentPlayback?.audioDecoder != null,
                     maxBitrate = state.maxBitrate,
                 ),
             onDismissRequest = {
@@ -784,8 +769,8 @@ fun PlaybackPageContent(
             },
             onPlaybackActionClick = onPlaybackActionClick,
             onChangeSubtitleDelay = { viewModel.updateSubtitleDelay(it) },
-            enableSubtitleDelay = player is MpvPlayer,
-            enableVideoScale = player !is MpvPlayer,
+            enableSubtitleDelay = false,
+            enableVideoScale = true,
         )
     }
 }

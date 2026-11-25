@@ -19,7 +19,6 @@ class AppPreferencesSerializer
             AppPreferences
                 .newBuilder()
                 .apply {
-                    updateUrl = AppPreference.UpdateUrl.defaultValue
                     autoCheckForUpdates = AppPreference.AutoCheckForUpdates.defaultValue
                     sendCrashReports = false
                     debugLogging = AppPreference.DebugLogging.defaultValue

@@ -504,6 +504,7 @@ class CollectionFolderViewModel
                                 ImageType.LOGO,
                             ),
                         includeItemTypes = includeItemTypes,
+                        excludeItemTypes = listOf(BaseItemKind.AUDIO, BaseItemKind.MUSIC_ALBUM, BaseItemKind.MUSIC_ARTIST),
                         recursive = recursive,
                         excludeItemIds = item?.let { listOf(item.id) },
                         sortBy =

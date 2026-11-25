@@ -117,36 +117,6 @@ class MusicService
          *
          * Sets up the media session, activity tracking, and actual playback
          */
-        suspend fun start() {
-            if (mediaSession == null) {
-                mutex.withLock {
-                    if (mediaSession == null) {
-                        Timber.i("Starting music MediaSession")
-                        mediaSession =
-                            MediaSession
-                                .Builder(context, player)
-                                .setCallback(TrustAllControllersCallback)
-                                .build()
-                        activityTracker =
-                            TrackActivityPlaybackListener(api, player) {
-                                state.value.currentItemId?.let { itemId ->
-                                    PlaybackItemState(
-                                        itemId = itemId,
-                                        playMethod = PlayMethod.DIRECT_PLAY,
-//                                        playSessionId = mediaSession?.id,
-                                    )
-                                }
-                            }.also { player.addListener(it) }
-                        websocketJob = subscribe()
-                    }
-                }
-            }
-            onMain {
-                player.prepare()
-                player.play()
-            }
-        }
-
         /**
          * Stop music playback
          */
@@ -207,7 +177,6 @@ class MusicService
                 player.setMediaItems(emptyList())
                 player.shuffleModeEnabled = shuffled
             }
-            start()
             addAllToQueue(items, startIndex)
         }
 
@@ -228,7 +197,6 @@ class MusicService
                 player.setMediaItems(mediaItems)
                 player.shuffleModeEnabled = shuffled
                 updateQueueSize()
-                start()
             }
         }
 
@@ -251,8 +219,7 @@ class MusicService
                     updateQueueSize()
                     if (player.mediaItemCount == 1) {
                         // Start playing if this was the first time added
-                        start()
-                    }
+                            }
                 }
             } else {
                 Timber.w("Tried to add non-audio type %s: %s", item.type, item.id)
@@ -289,7 +256,6 @@ class MusicService
                     onMain { player.addMediaItems(mediaItems) }
                 }
             updateQueueSize()
-            start()
         }
 
         /**
@@ -410,8 +376,7 @@ class MusicService
             onMain {
                 player.addMediaItem(state.value.currentIndex + 1, mediaItem)
                 if (player.mediaItemCount == 1) {
-                    start()
-                }
+                    }
             }
             updateQueueSize()
         }
