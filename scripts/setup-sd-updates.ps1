@@ -36,8 +36,8 @@ foreach ($name in $names) {
     $secrets[$name] | gh secret set $name --repo $repo
     if ($LASTEXITCODE -ne 0) { throw "Could not save $name in GitHub. Retry on this PC." }
 }
-# The workflow exists on the SD branch, so a rerun also works on forks where manual dispatch is unavailable.
-$runs = gh api "repos/$repo/actions/runs?branch=sd-deinterlace&per_page=30" | ConvertFrom-Json
+# The workflow exists on main, so a rerun also works on forks where manual dispatch is unavailable.
+$runs = gh api "repos/$repo/actions/runs?branch=main&per_page=30" | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0) { throw "Could not find the SD update workflow." }
 $run = $runs.workflow_runs | Where-Object { $_.path -eq ".github/workflows/sd-deinterlace.yml" } | Select-Object -First 1
 if (!$run) { throw "No SD build found on the fork." }

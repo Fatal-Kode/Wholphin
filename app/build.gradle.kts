@@ -117,8 +117,11 @@ configure<ApplicationExtension> {
                 "proguard-rules.pro",
             )
             isDebuggable = false
+            applicationIdSuffix = ".sddeinterlace"
             if (shouldSign.get()) {
                 signingConfig = signingConfigs.getByName("ci")
+            } else if (providers.gradleProperty("wholphinPreviewSigning").isPresent) {
+                signingConfig = signingConfigs.getByName("debug")
             } else {
                 val localPropertiesFile = project.rootProject.file("local.properties")
                 if (localPropertiesFile.exists()) {

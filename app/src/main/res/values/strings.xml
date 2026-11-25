@@ -992,7 +992,7 @@
     <string name="osd_video_mode">Video · %1$s</string>
     <string name="osd_audio_mode">Audio · %1$s</string>
     <string name="osd_mode_direct_play">Direct Play</string>
-    <string name="osd_mode_copy">Copied</string>
+    <string name="osd_mode_copy">Original</string>
     <string name="osd_mode_transcode">Transcoding</string>
     <string name="osd_mode_remux">Remuxing</string>
     <string name="osd_mode_pending">Unconfirmed</string>

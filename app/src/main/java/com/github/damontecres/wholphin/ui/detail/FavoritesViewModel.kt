@@ -43,9 +43,7 @@ import com.github.damontecres.wholphin.ui.main.settings.Library
 import com.github.damontecres.wholphin.ui.nav.Destination
 import com.github.damontecres.wholphin.ui.nav.NavDrawerItem
 import com.github.damontecres.wholphin.ui.showToast
-import com.github.damontecres.wholphin.ui.util.goToRandom
 import com.github.damontecres.wholphin.util.ApiRequestPager
-import com.github.damontecres.wholphin.util.BlockingList
 import com.github.damontecres.wholphin.util.DataLoadingState
 import com.github.damontecres.wholphin.util.ExceptionHandler
 import com.github.damontecres.wholphin.util.GetArtistsHandler
@@ -697,39 +695,7 @@ class FavoritesViewModel
                 saveViewOptions(type, viewOptions)
             }
 
-            override fun onClickRandom() {
-                viewModelScope.launchIO {
-                    try {
-                        collectionStateFor(type)?.let { collectionState ->
-                            val list =
-                                collectionState.items.successValue as? BlockingList<BaseItem?>
-                            if (list != null) {
-                                goToRandom(
-                                    navigateTo = ::navigateTo,
-                                    parentId = libraryDisplayItemId(type),
-                                    filter =
-                                        collectionState.filter.copy(
-                                            includeItemTypes = listOf(type),
-                                        ),
-                                    sortAndDirection = collectionState.sortAndDirection,
-                                    recursive = true,
-                                    list = list,
-                                )
-                            } else {
-                                Timber.w(
-                                    "state.value.items is not successful: %s",
-                                    collectionState.items,
-                                )
-                            }
-                        }
-                    } catch (ex: CancellationException) {
-                        throw ex
-                    } catch (ex: Exception) {
-                        Timber.e(ex, "Error getting random")
-                        showToast(context, "Error: ${ex.localizedMessage}}")
-                    }
-                }
-            }
+           }
         }
     }
 

@@ -2,7 +2,7 @@ name: Wholphin SD deinterlace APK
 
 on:
   push:
-    branches: [sd-deinterlace]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   apk:
-    if: github.ref == 'refs/heads/sd-deinterlace'
+    if: github.ref == 'refs/heads/main' && github.repository == 'Fatal-Kode/Wholphin'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -22,13 +22,13 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - uses: ./.github/actions/setup
-      - name: Build debug APK
+      - name: Build release APK
         env:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
-        run: ./gradlew assembleDefaultDebug "-PexoTestBuildNumber=$GITHUB_RUN_NUMBER" "-PexoTestCommit=${GITHUB_SHA:0:8}"
+        run: ./gradlew assembleDefaultRelease -PwholphinPreviewSigning "-PexoTestBuildNumber=$GITHUB_RUN_NUMBER" "-PexoTestCommit=${GITHUB_SHA:0:8}"
       - name: Prepare APKs
         env:
           GH_TOKEN: ${{ github.token }}
@@ -37,11 +37,11 @@ jobs:
           mkdir release-apks
           while IFS= read -r -d '' apk; do
             name=${apk##*/}
-            suffix=${name#Wholphin-default-debug-$version-$GITHUB_RUN_NUMBER}
-            cp "$apk" "release-apks/Wholphin-debug$suffix"
-          done < <(find app/build/outputs/apk/default/debug -name '*.apk' -print0)
-          test -f release-apks/Wholphin-debug-arm64-v8a.apk
-          test -f release-apks/Wholphin-debug-armeabi-v7a.apk
+            suffix=${name#Wholphin-default-release-$version-$GITHUB_RUN_NUMBER}
+            cp "$apk" "release-apks/Wholphin-release$suffix"
+          done < <(find app/build/outputs/apk/default/release -name '*.apk' -print0)
+          test -f release-apks/Wholphin-release-arm64-v8a.apk
+          test -f release-apks/Wholphin-release-armeabi-v7a.apk
       - name: Upload installable test APKs
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
@@ -69,9 +69,9 @@ jobs:
           if [[ -n "$existing" ]]; then
             if [[ "$tag" == sd-deinterlace-updates ]]; then
               mkdir previous
-              gh release download "$tag" --pattern Wholphin-debug-arm64-v8a.apk --dir previous
-              old=$(fingerprint previous/Wholphin-debug-arm64-v8a.apk)
-              new=$(fingerprint release-apks/Wholphin-debug-arm64-v8a.apk)
+              gh release download "$tag" --pattern '*-arm64-v8a.apk' --dir previous
+              old=$(fingerprint "$(find previous -name '*.apk' -print -quit)")
+              new=$(fingerprint release-apks/Wholphin-release-arm64-v8a.apk)
               [[ -n "$new" && "$new" == "$old" ]] || { echo "::error::Signing certificate changed"; exit 1; }
             fi
             gh release upload "$tag" release-apks/*.apk --clobber
