@@ -57,7 +57,7 @@ class UpdateChecker
         @param:StandardOkHttpClient private val okHttpClient: OkHttpClient,
     ) {
         companion object {
-            private const val UPDATE_FEED = "https://api.github.com/repos/Fatal-Kode/Wholphin/releases/tags/sd-deinterlace-updates"
+            private const val UPDATE_FEED = "https://api.github.com/repos/Fatal-Kode/Wholphin/releases/latest"
             const val ASSET_NAME = "Wholphin"
             const val APK_NAME = "$ASSET_NAME.apk"
 
@@ -129,7 +129,7 @@ class UpdateChecker
         }
 
         suspend fun getRelease(version: Version): Release? {
-            val url = UPDATE_FEED
+            val url = "https://api.github.com/repos/Fatal-Kode/Wholphin/releases/tags/v" + version.toString().removePrefix("v")
             return withContext(WholphinDispatchers.IO) {
                 val request =
                     Request
@@ -151,7 +151,11 @@ class UpdateChecker
                         .Builder()
                         .url(
                             when (updateUrl) {
-                                "", "https://api.github.com/repos/Fatal-Kode/Wholphin/releases/tags/sd-deinterlace-test" -> UPDATE_FEED
+                                "",
+                                "https://api.github.com/repos/Fatal-Kode/Wholphin/releases/tags/sd-deinterlace-test",
+                                "https://api.github.com/repos/Fatal-Kode/Wholphin/releases/tags/sd-deinterlace-preview",
+                                "https://api.github.com/repos/Fatal-Kode/Wholphin/releases/tags/sd-deinterlace-updates",
+                                -> UPDATE_FEED
                                 else -> updateUrl
                             },
                         )

@@ -41,6 +41,6 @@ $runs = gh api "repos/$repo/actions/runs?branch=main&per_page=30" | ConvertFrom-
 if ($LASTEXITCODE -ne 0) { throw "Could not find the SD update workflow." }
 $run = $runs.workflow_runs | Where-Object { $_.path -eq ".github/workflows/sd-deinterlace.yml" } | Select-Object -First 1
 if (!$run) { throw "No SD build found on the fork." }
-gh run rerun $run.id --repo $repo
+gh workflow run sd-deinterlace.yml --ref main --repo $repo
 if ($LASTEXITCODE -ne 0) { throw "Signing is configured. Rerun the SD build after the current run finishes." }
 Write-Host "Signing secrets configured. Keep the signing files in $folder."
