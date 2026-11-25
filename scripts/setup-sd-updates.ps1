@@ -37,6 +37,10 @@ foreach ($name in $names) {
     if ($LASTEXITCODE -ne 0) { throw "Could not save $name in GitHub. Retry on this PC." }
 }
 # The workflow exists on the SD branch, so a rerun also works on forks where manual dispatch is unavailable.
-$run = gh run list --repo $repo --branch sd-deinterlace --workflow "Wholphin SD deinterlace APK" --limit 1 --json databaseId --jq '.[0].databaseId'
-if ($run) { gh run rerun $run --repo $repo }
+$runs = gh api "repos/$repo/actions/runs?branch=sd-deinterlace&per_page=30" | ConvertFrom-Json
+if ($LASTEXITCODE -ne 0) { throw "Could not find the SD update workflow." }
+$run = $runs.workflow_runs | Where-Object { $_.path -eq ".github/workflows/sd-deinterlace.yml" } | Select-Object -First 1
+if (!$run) { throw "No SD build found on the fork." }
+gh run rerun $run.id --repo $repo
+if ($LASTEXITCODE -ne 0) { throw "Signing is configured. Rerun the SD build after the current run finishes." }
 Write-Host "Signing secrets configured. Keep the signing files in $folder."

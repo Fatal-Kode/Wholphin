@@ -89,8 +89,8 @@ class DiscoverRequestViewModel
             viewModelScope.launchDefault {
                 val (sortOptions, potentialFilterOptions) =
                     when (type) {
-                        DiscoverRequestType.DISCOVER_TV -> DiscoverSort.entries.toList() to discoverTvFilters
-                        DiscoverRequestType.DISCOVER_MOVIES -> DiscoverSort.entries.toList() to discoverMovieFilters
+                        DiscoverRequestType.DISCOVER_TV -> DiscoverSort.entries.filterNot { it == DiscoverSort.TMDB_VOTE } to discoverTvFilters
+                        DiscoverRequestType.DISCOVER_MOVIES -> DiscoverSort.entries.filterNot { it == DiscoverSort.TMDB_VOTE } to discoverMovieFilters
                         DiscoverRequestType.TRENDING -> emptyList<DiscoverSort>() to emptyList()
                         DiscoverRequestType.UPCOMING_TV -> emptyList<DiscoverSort>() to emptyList()
                         DiscoverRequestType.UPCOMING_MOVIES -> emptyList<DiscoverSort>() to emptyList()

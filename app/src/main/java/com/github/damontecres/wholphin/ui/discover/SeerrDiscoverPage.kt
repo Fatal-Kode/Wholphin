@@ -77,7 +77,6 @@ class SeerrDiscoverViewModel
         private val backdropService: BackdropService,
     ) : ViewModel() {
         val state = MutableStateFlow<DiscoverState>(DiscoverState())
-        val rating = MutableStateFlow<Map<Int, DiscoverRating>>(mapOf())
 
         init {
             viewModelScope.launchIO {
@@ -243,51 +242,7 @@ class SeerrDiscoverViewModel
             }
         }
 
-        private val ratingCache =
-            CacheBuilder
-                .newBuilder()
-                .maximumSize(100)
-                .build<Int, DiscoverRating>()
 
-        // TODO this is not very efficient
-        fun fetchRating(
-            id: Int,
-            type: SeerrItemType,
-        ) {
-            viewModelScope.launchIO {
-                val cachedResult = ratingCache.getIfPresent(id)
-                if (cachedResult != null) {
-                    return@launchIO
-                }
-                val result =
-                    getDiscoverRating(id) {
-                        when (type) {
-                            SeerrItemType.MOVIE -> {
-                                DiscoverRating(
-                                    seerrService.api.moviesApi.movieMovieIdRatingsGet(movieId = id),
-                                )
-                            }
-
-                            SeerrItemType.TV -> {
-                                DiscoverRating(seerrService.api.tvApi.tvTvIdRatingsGet(tvId = id))
-                            }
-
-                            SeerrItemType.PERSON -> {
-                                DiscoverRating(null, null)
-                            }
-
-                            SeerrItemType.UNKNOWN -> {
-                                DiscoverRating(null, null)
-                            }
-                        }
-                    } ?: DiscoverRating(null, null)
-
-                ratingCache.put(id, result)
-                rating.update {
-                    ratingCache.asMap().toMap()
-                }
-            }
-        }
     }
 
 fun Int.toUUID() = UUID(0L, toLong())
@@ -338,7 +293,6 @@ fun SeerrDiscoverPage(
     viewModel: SeerrDiscoverViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsState()
-    val ratingMap by viewModel.rating.collectAsState()
 
     val focusRequesters = remember { List(LAST_ROW + 1) { FocusRequester() } }
     var position by rememberPosition(0, -1)
@@ -412,7 +366,7 @@ fun SeerrDiscoverPage(
         modifier = modifier,
     ) {
         val details =
-            remember(focusedItem, ratingMap) {
+            remember(focusedItem) {
                 (focusedItem as? DiscoverFocusedItem.Item)?.let { focusedItem ->
                     buildList {
                         focusedItem.item

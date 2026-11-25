@@ -1,5 +1,13 @@
 package com.github.damontecres.wholphin.ui.playback.overlay
 
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.platform.LocalView
+import androidx.media3.common.C
+import androidx.media3.exoplayer.ExoPlayer
+import org.jellyfin.sdk.model.api.MediaStreamType
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.delay
+import java.text.DecimalFormat
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
@@ -331,11 +339,7 @@ fun PlaybackOverlay(
                 Modifier
                     .align(Alignment.TopEnd),
         ) {
-            Column(horizontalAlignment = Alignment.End) {
-                if (!showDebugInfo && showClock) {
-                    Box { TimeDisplay() }
-                }
-            }
+            Box { TimeDisplay() }
         }
 
         // Debug overlay
@@ -389,22 +393,30 @@ enum class OverlayViewState {
 
 @Composable
 private fun PlaybackModeBadges(playback: CurrentPlayback, player: Player) {
-    val view = androidx.compose.ui.platform.LocalView.current
-    val rates by androidx.compose.runtime.produceState("— fps → — Hz", player, playback.sourceId, view) {
-        val format = java.text.DecimalFormat("0.###")
-        while (true) {
-            val fps = (player as? androidx.media3.exoplayer.ExoPlayer)?.videoFormat?.frameRate
-                ?.takeIf { it > 0f } ?: player.currentTracks.groups.firstNotNullOfOrNull { group ->
-                    if (group.type != androidx.media3.common.C.TRACK_TYPE_VIDEO) null else
+    val view = LocalView.current
+    val sourceVideo = playback.mediaSourceInfo.mediaStreams.orEmpty().firstOrNull { it.type == MediaStreamType.VIDEO }
+    val copiedVideo = playback.playMethod == PlayMethod.DIRECT_PLAY || playback.transcodeInfo?.isVideoDirect == true
+    val sourceFps = if (copiedVideo) {
+        sourceVideo?.averageFrameRate?.takeIf { it > 0f } ?: sourceVideo?.realFrameRate?.takeIf { it > 0f }
+    } else {
+        null
+    }
+    val rates by produceState("— fps → — Hz", player, view, sourceFps) {
+        val format = DecimalFormat("0.###")
+        while (isActive) {
+            val fps = (player as? ExoPlayer)?.videoFormat?.frameRate?.takeIf { it > 0f }
+                ?: player.currentTracks.groups.firstNotNullOfOrNull { group ->
+                    if (group.type == C.TRACK_TYPE_VIDEO) {
                         (0 until group.length).firstNotNullOfOrNull { index ->
                             group.getTrackFormat(index).frameRate.takeIf { group.isTrackSelected(index) && it > 0f }
                         }
-                } ?: playback.mediaSourceInfo.mediaStreams.orEmpty().firstOrNull {
-                    playback.playMethod == PlayMethod.DIRECT_PLAY && it.type == org.jellyfin.sdk.model.api.MediaStreamType.VIDEO
-                }?.let { it.averageFrameRate ?: it.realFrameRate }?.takeIf { it > 0f }
+                    } else {
+                        null
+                    }
+                } ?: sourceFps
             val hz = view.display?.mode?.refreshRate
             value = "${fps?.let { format.format(it) } ?: "—"} fps → ${hz?.let { format.format(it) } ?: "—"} Hz"
-            kotlinx.coroutines.delay(1000)
+            delay(1000)
         }
     }
     val info = playback.transcodeInfo

@@ -42,7 +42,6 @@ val BaseItemKind.playable: Boolean
             BaseItemKind.EPISODE,
             BaseItemKind.MOVIE,
             BaseItemKind.MUSIC_VIDEO,
-            BaseItemKind.TRAILER,
             BaseItemKind.VIDEO,
             BaseItemKind.LIVE_TV_CHANNEL,
             BaseItemKind.LIVE_TV_PROGRAM,
@@ -91,7 +90,7 @@ fun getTypeFor(collectionType: CollectionType): BaseItemKind? =
         CollectionType.TVSHOWS -> BaseItemKind.SERIES
         CollectionType.MUSIC -> BaseItemKind.AUDIO
         CollectionType.MUSICVIDEOS -> BaseItemKind.MUSIC_VIDEO
-        CollectionType.TRAILERS -> BaseItemKind.TRAILER
+        CollectionType.TRAILERS -> null
         CollectionType.HOMEVIDEOS -> BaseItemKind.VIDEO
         CollectionType.BOXSETS -> BaseItemKind.BOX_SET
         CollectionType.BOOKS -> BaseItemKind.BOOK

@@ -454,18 +454,6 @@ fun SeriesDetailsContent(
                                     }
                                 },
                         )
-                        TrailerButton(
-                            trailers = trailers,
-                            trailerOnClick = trailerOnClick,
-                            modifier =
-                                Modifier.onFocusChanged {
-                                    if (it.isFocused) {
-                                        scope.launch(ExceptionHandler()) {
-                                            bringIntoViewRequester.bringIntoView()
-                                        }
-                                    }
-                                },
-                        )
                         if (canDelete) {
                             DeleteButton(
                                 title = series.title ?: "",

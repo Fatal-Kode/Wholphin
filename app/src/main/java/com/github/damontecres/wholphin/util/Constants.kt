@@ -14,7 +14,6 @@ val supportItemKinds =
         BaseItemKind.COLLECTION_FOLDER,
         BaseItemKind.FOLDER,
         BaseItemKind.USER_VIEW,
-        BaseItemKind.TRAILER,
         BaseItemKind.TV_CHANNEL,
         BaseItemKind.TV_PROGRAM,
         BaseItemKind.LIVE_TV_CHANNEL,
