@@ -695,7 +695,6 @@ class FavoritesViewModel
                 saveViewOptions(type, viewOptions)
             }
 
-           }
         }
     }
 

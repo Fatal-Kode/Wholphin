@@ -315,8 +315,6 @@ class CollectionFolderViewModel
             }
         }
 
-       }
-
         override fun onFilterChange(
             newFilter: GetItemsFilter,
             recursive: Boolean,
@@ -844,9 +842,6 @@ interface CollectionFolderViewActions {
 
     fun saveViewOptions(viewOptions: ViewOptions)
 
-    /**
-     * Navigate to a random item
-     */
 }
 
 @Composable
