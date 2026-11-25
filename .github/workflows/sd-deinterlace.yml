@@ -1,0 +1,52 @@
+name: Wholphin SD deinterlace APK
+
+on:
+  push:
+    branches: [sd-deinterlace]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: wholphin-sd-deinterlace-release
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    if: github.ref == 'refs/heads/sd-deinterlace'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      - name: Build debug APK
+        env:
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+        run: ./gradlew assembleDefaultDebug "-PexoTestBuildNumber=$GITHUB_RUN_NUMBER" "-PexoTestCommit=${GITHUB_SHA:0:8}"
+      - name: Publish test prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=sd-deinterlace-test
+          version="0.0.0-$GITHUB_RUN_NUMBER-g${GITHUB_SHA:0:8}"
+          mkdir release-apks
+          while IFS= read -r -d '' apk; do
+            name=${apk##*/}
+            suffix=${name#Wholphin-default-debug-$version-$GITHUB_RUN_NUMBER}
+            cp "$apk" "release-apks/Wholphin-debug$suffix"
+          done < <(find app/build/outputs/apk/default/debug -name '*.apk' -print0)
+          test -f release-apks/Wholphin-debug-arm64-v8a.apk
+          test -f release-apks/Wholphin-debug-armeabi-v7a.apk
+          notes="Wholphin SD deinterlace test build from commit $GITHUB_SHA."
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release upload "$tag" release-apks/*.apk --clobber
+            gh release edit "$tag" --title "$version" --notes "$notes" --prerelease --latest=false
+          else
+            gh release create "$tag" release-apks/*.apk --target "$GITHUB_SHA" --title "$version" --notes "$notes" --prerelease --latest=false
+          fi

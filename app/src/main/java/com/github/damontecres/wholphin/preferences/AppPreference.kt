@@ -627,7 +627,7 @@ sealed interface AppPreference<Pref, T> {
         val UpdateUrl =
             AppStringPreference<AppPreferences>(
                 title = R.string.update_url,
-                defaultValue = "https://api.github.com/repos/damontecres/Wholphin/releases/latest",
+                defaultValue = "https://api.github.com/repos/Fatal-Kode/Wholphin/releases/tags/sd-deinterlace-test",
                 getter = { it.updateUrl },
                 setter = { prefs, value ->
                     prefs.update { updateUrl = value }
@@ -901,6 +901,18 @@ sealed interface AppPreference<Pref, T> {
             AppDestinationPreference<AppPreferences>(
                 title = R.string.subtitle_style,
                 destination = Destination.SubtitleSettings(false),
+            )
+
+        val TranscodeInterlacedSd =
+            AppSwitchPreference<AppPreferences>(
+                title = R.string.transcode_interlaced_sd,
+                defaultValue = false,
+                getter = { it.playbackPreferences.transcodeInterlacedSd },
+                setter = { prefs, value ->
+                    prefs.updatePlaybackPreferences { transcodeInterlacedSd = value }
+                },
+                summaryOn = R.string.transcode_interlaced_sd_summary,
+                summaryOff = R.string.disabled,
             )
 
         val RefreshRateSwitching =
@@ -1331,6 +1343,7 @@ val advancedPreferences =
                         AppPreference.DpadSeekModePref,
                         AppPreference.MaxResolutionPref,
                         AppPreference.MaxBitrate,
+                        AppPreference.TranscodeInterlacedSd,
                         AppPreference.RefreshRateSwitching,
                         AppPreference.ResolutionSwitching,
                         AppPreference.PlaybackDebugInfo,

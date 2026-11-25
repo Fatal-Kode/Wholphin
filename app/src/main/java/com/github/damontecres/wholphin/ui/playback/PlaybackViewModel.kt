@@ -111,6 +111,7 @@ import org.jellyfin.sdk.model.DeviceInfo
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ImageType
 import org.jellyfin.sdk.model.api.MediaSegmentType
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jellyfin.sdk.model.api.MediaStreamType
 import org.jellyfin.sdk.model.api.MediaType
 import org.jellyfin.sdk.model.api.PlayMethod
@@ -640,6 +641,15 @@ class PlaybackViewModel
         ): Unit =
             withContext(WholphinDispatchers.IO) {
                 val itemId = item.id
+                val sourceVideo = item.data.mediaSources
+                    ?.firstOrNull { sourceId != null && it.id == sourceId }
+                    ?.mediaStreams
+                    ?.firstOrNull { it.type == MediaStreamType.VIDEO }
+                val transcodeInterlacedSd =
+                    preferences.appPreferences.playbackPreferences.transcodeInterlacedSd &&
+                        sourceVideo?.isInterlaced == true &&
+                        (sourceVideo.height ?: 0) in 1..576 &&
+                        (sourceVideo.width ?: 0) in 1..1024
 
                 trackChangeListener?.let { onMain { player.removeListener(it) } }
                 trackChangeListener = null
@@ -648,6 +658,7 @@ class PlaybackViewModel
                     if (currentPlayback.item.id == item.id &&
                         currentPlayback.playMethod == PlayMethod.DIRECT_PLAY &&
                         enableDirectPlay &&
+                        !transcodeInterlacedSd &&
                         state.value.maxBitrate == maxBitrate
                     ) {
                         val wasSuccessful =
@@ -693,9 +704,9 @@ class PlaybackViewModel
                                 mediaSourceId = sourceId,
                                 alwaysBurnInSubtitleWhenTranscoding = false,
                                 maxStreamingBitrate = maxBitrate.toInt(),
-                                enableDirectPlay = enableDirectPlay,
-                                enableDirectStream = enableDirectStream,
-                                allowVideoStreamCopy = enableDirectStream,
+                                enableDirectPlay = enableDirectPlay && !transcodeInterlacedSd,
+                                enableDirectStream = enableDirectStream && !transcodeInterlacedSd,
+                                allowVideoStreamCopy = enableDirectStream && !transcodeInterlacedSd,
                                 allowAudioStreamCopy = enableDirectStream,
                                 enableTranscoding = true,
                                 autoOpenLiveStream = true,
@@ -709,7 +720,16 @@ class PlaybackViewModel
                 val source = response.mediaSources.firstOrNull()
                 source?.let { source ->
                     val mediaUrl =
-                        if (source.supportsDirectPlay) {
+                        if (transcodeInterlacedSd) {
+                            Timber.i("Requesting server deinterlacing for SD interlaced video")
+                            source.transcodingUrl?.let(api::createUrl)?.toHttpUrlOrNull()?.let { url ->
+                                val builder = url.newBuilder()
+                                url.queryParameterNames
+                                    .filter { it.equals("deInterlace", ignoreCase = true) }
+                                    .forEach { builder.removeAllQueryParameters(it) }
+                                builder.addQueryParameter("deInterlace", "true").build().toString()
+                            }
+                        } else if (source.supportsDirectPlay) {
                             if (source.isRemote && source.path.isNotNullOrBlank()) {
                                 Timber.i("Playback is remote for source: %s", source.id)
                                 source.path
@@ -741,7 +761,8 @@ class PlaybackViewModel
                     }
                     val transcodeType =
                         when {
-//                        playerBackend == PlayerBackend.MPV -> PlayMethod.DIRECT_PLAY
+                            transcodeInterlacedSd -> PlayMethod.TRANSCODE
+
                             source.supportsDirectPlay -> PlayMethod.DIRECT_PLAY
 
                             source.supportsDirectStream -> PlayMethod.DIRECT_STREAM

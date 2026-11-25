@@ -50,7 +50,7 @@ val gitTags =
 
 val gitDescribe =
     providers
-        .exec { commandLine("git", "describe", "--tags", "--long", "--match=v*") }
+        .exec { commandLine("git", "describe", "--tags", "--long", "--match=v*", "--always") }
         .standardOutput.asText
         .getOrElse("v0.0.0")
 
@@ -75,8 +75,16 @@ configure<ApplicationExtension> {
         applicationId = "com.github.damontecres.wholphin"
         minSdk = libs.versions.minSdk.getInt()
         targetSdk = libs.versions.targetSdk.getInt()
-        versionCode = gitTags.trim().lines().size
-        versionName = gitDescribe.trim().removePrefix("v").ifBlank { "0.0.0" }
+        versionCode = providers.gradleProperty("exoTestBuildNumber").orNull?.toInt() ?: gitTags.trim().lines().size
+        val describedVersion = gitDescribe.trim().removePrefix("v")
+        val testBuild = providers.gradleProperty("exoTestBuildNumber").orNull
+        versionName =
+            when {
+                testBuild != null -> "0.0.0-$testBuild-g${providers.gradleProperty("exoTestCommit").get()}"
+                describedVersion.isEmpty() -> "0.0.0"
+                '.' !in describedVersion -> "0.0.0-0-g$describedVersion"
+                else -> describedVersion
+            }
         testInstrumentationRunner = "com.github.damontecres.wholphin.test.WholphinTestRunner"
 
         buildConfigField("long", "BUILD_TIME", System.currentTimeMillis().toString())
@@ -128,7 +136,8 @@ configure<ApplicationExtension> {
             isMinifyEnabled = false
             isShrinkResources = false
             isDebuggable = true
-            applicationIdSuffix = ".debug"
+            applicationIdSuffix = ".sddeinterlace"
+            if (shouldSign.get()) signingConfig = signingConfigs.getByName("ci")
         }
     }
     flavorDimensions += "version"

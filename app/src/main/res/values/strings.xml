@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">Wholphin</string>
+    <string name="app_name" translatable="false">Wholphin SD</string>
     <string name="app_name_long" translatable="false">Wholphin</string>
 
     <string name="about">About</string>
@@ -436,6 +436,8 @@
     <string name="cast_and_crew"><![CDATA[Cast & Crew]]></string>
     <string name="guest_stars">Guest stars</string>
     <string name="edge_size">Edge size</string>
+    <string name="transcode_interlaced_sd">Transcode interlaced SD video</string>
+    <string name="transcode_interlaced_sd_summary">Use the Jellyfin server to deinterlace standard-definition video</string>
     <string name="refresh_rate_switching">Refresh rate switching</string>
     <string name="automatic">Automatic</string>
     <string name="username_or_password">Use username/password</string>
