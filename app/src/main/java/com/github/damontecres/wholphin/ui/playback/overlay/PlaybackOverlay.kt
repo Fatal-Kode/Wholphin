@@ -331,7 +331,9 @@ fun PlaybackOverlay(
                     .align(Alignment.TopEnd),
         ) {
             Column(horizontalAlignment = Alignment.End) {
-                if (!showDebugInfo && showClock) TimeDisplay()
+                if (!showDebugInfo && showClock) {
+                    Box { TimeDisplay() }
+                }
                 currentPlayback?.let { PlaybackModeBadges(it) }
             }
         }
