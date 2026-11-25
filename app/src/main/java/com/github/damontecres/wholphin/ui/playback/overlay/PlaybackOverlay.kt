@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -42,12 +43,16 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player
+import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
+import com.github.damontecres.wholphin.R
 import com.github.damontecres.wholphin.data.model.BaseItem
 import com.github.damontecres.wholphin.data.model.Chapter
 import com.github.damontecres.wholphin.data.model.PlaylistItem
@@ -61,6 +66,7 @@ import com.github.damontecres.wholphin.ui.playback.CurrentPlayback
 import com.github.damontecres.wholphin.ui.playback.PlaybackDialogType
 import org.jellyfin.sdk.model.api.ImageType
 import org.jellyfin.sdk.model.api.MediaSegmentDto
+import org.jellyfin.sdk.model.api.PlayMethod
 import org.jellyfin.sdk.model.api.TrickplayInfoDto
 import kotlin.time.Duration
 
@@ -317,14 +323,17 @@ fun PlaybackOverlay(
             )
         }
         AnimatedVisibility(
-            visible = !showDebugInfo && showClock && controllerViewState.controlsVisible,
+            visible = controllerViewState.controlsVisible && (currentPlayback != null || (!showDebugInfo && showClock)),
             enter = slideIn { IntOffset(x = it.width / 2, y = -it.height / 2) } + fadeIn(),
             exit = slideOut { IntOffset(x = it.width / 2, y = -it.height / 2) } + fadeOut(),
             modifier =
                 Modifier
                     .align(Alignment.TopEnd),
         ) {
-            TimeDisplay()
+            Column(horizontalAlignment = Alignment.End) {
+                if (!showDebugInfo && showClock) TimeDisplay()
+                currentPlayback?.let { PlaybackModeBadges(it) }
+            }
         }
 
         // Debug overlay
@@ -373,4 +382,48 @@ enum class OverlayViewState {
     CONTROLLER,
     CHAPTERS,
     QUEUE,
+}
+
+
+@Composable
+private fun PlaybackModeBadges(playback: CurrentPlayback) {
+    val info = playback.transcodeInfo
+    val directPlay = playback.playMethod == PlayMethod.DIRECT_PLAY
+    val directStream = playback.playMethod == PlayMethod.DIRECT_STREAM
+    val video = when {
+        directPlay -> R.string.osd_mode_direct_play
+        info?.isVideoDirect == true -> R.string.osd_mode_copy
+        info?.isVideoDirect == false -> R.string.osd_mode_transcode
+        directStream -> R.string.osd_mode_remux
+        else -> R.string.osd_mode_pending
+    }
+    val audio = when {
+        directPlay -> R.string.osd_mode_direct_play
+        info?.isAudioDirect == true -> R.string.osd_mode_copy
+        info?.isAudioDirect == false -> R.string.osd_mode_transcode
+        else -> R.string.osd_mode_pending
+    }
+
+    Column(
+        modifier = Modifier.padding(top = 8.dp, end = 16.dp),
+        horizontalAlignment = Alignment.End,
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        val shape = RoundedCornerShape(6.dp)
+        val badge = Modifier
+            .background(AppColors.TransparentBlack50, shape)
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+        Text(
+            text = stringResource(R.string.osd_video_mode, stringResource(video)),
+            modifier = badge,
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.White,
+        )
+        Text(
+            text = stringResource(R.string.osd_audio_mode, stringResource(audio)),
+            modifier = badge,
+            style = MaterialTheme.typography.labelMedium,
+            color = Color.White,
+        )
+    }
 }

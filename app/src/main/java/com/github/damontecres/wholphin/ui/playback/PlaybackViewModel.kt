@@ -1297,7 +1297,7 @@ class PlaybackViewModel
         private fun listenForTranscodeReason(): Job =
             viewModelScope.launchIO {
                 state.map { it.currentPlayback }.collectLatest {
-                    if (it != null && it.playMethod == PlayMethod.TRANSCODE && it.transcodeInfo == null) {
+                    if (it != null && it.playMethod != PlayMethod.DIRECT_PLAY && it.transcodeInfo == null) {
                         try {
                             var transcodeInfo = it.transcodeInfo
                             while (isActive && transcodeInfo == null) {
