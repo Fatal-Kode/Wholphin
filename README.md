@@ -1,6 +1,6 @@
 # Wholphin
 
-An open-source Jellyfin client for Android TV. This build focuses on video playback on the Xiaomi Mi Box and similar Android TV devices.
+An open-source Jellyfin client for Android TV. This build focuses on video playback across Android TV devices.
 
 [Download Wholphin](https://github.com/Fatal-Kode/Wholphin/releases/latest/download/Wholphin-release.apk) · [Releases](https://github.com/Fatal-Kode/Wholphin/releases) · [Version tags](https://github.com/Fatal-Kode/Wholphin/tags)
 

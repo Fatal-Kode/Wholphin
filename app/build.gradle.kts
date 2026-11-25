@@ -73,13 +73,11 @@ configure<ApplicationExtension> {
         applicationId = "com.github.damontecres.wholphin"
         minSdk = libs.versions.minSdk.getInt()
         targetSdk = libs.versions.targetSdk.getInt()
-        versionCode = providers.gradleProperty("forkVersionCode").orNull?.toInt() ?: providers.gradleProperty("exoTestBuildNumber").orNull?.toInt() ?: gitTags.trim().lines().size
+        versionCode = providers.gradleProperty("forkVersionCode").orNull?.toInt() ?: gitTags.trim().lines().size
         val describedVersion = gitDescribe.trim().removePrefix("v")
-        val testBuild = providers.gradleProperty("exoTestBuildNumber").orNull
         versionName =
             when {
                 providers.gradleProperty("forkVersionName").isPresent -> providers.gradleProperty("forkVersionName").get()
-                testBuild != null -> "0.0.0-$testBuild-g${providers.gradleProperty("exoTestCommit").get()}"
                 describedVersion.isEmpty() -> "0.0.0"
                 '.' !in describedVersion -> "0.0.0-0-g$describedVersion"
                 else -> describedVersion

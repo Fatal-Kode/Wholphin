@@ -21,6 +21,12 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Set release version
+        run: |
+          # Continue versioning from release tags when the workflow filename changes.
+          latest_patch=$(git tag --list 'v1.2.*' | sed -n 's/^v1\.2\.\([0-9][0-9]*\)$/\1/p' | sort -n | tail -n 1)
+          patch=$((${latest_patch:-0} + 1))
+          printf 'WHOLPHIN_VERSION=1.2.%s\nWHOLPHIN_VERSION_CODE=%s\n' "$patch" "$((10000 + patch))" >> "$GITHUB_ENV"
       - uses: ./.github/actions/setup
       - name: Build release APK
         env:
@@ -54,10 +60,9 @@ jobs:
                   print("::add-mask::" + env[name], flush=True)
           if not all(env.get(name) for name in names):
               raise SystemExit("Add WHOLPHIN_SIGNING_BUNDLE to the repository's Actions secrets.")
-          number = int(env["GITHUB_RUN_NUMBER"])
           subprocess.run(
-              ["./gradlew", "assembleDefaultRelease", f"-PforkVersionName=1.2.{number}",
-               f"-PforkVersionCode={10000 + number}"],
+              ["./gradlew", "assembleDefaultRelease", f"-PforkVersionName={env['WHOLPHIN_VERSION']}",
+               f"-PforkVersionCode={env['WHOLPHIN_VERSION_CODE']}"],
               env=env,
               check=True,
           )
@@ -72,8 +77,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          version="1.2.$GITHUB_RUN_NUMBER"
-          code=$((10000 + GITHUB_RUN_NUMBER))
+          version="$WHOLPHIN_VERSION"
+          code="$WHOLPHIN_VERSION_CODE"
           tag="v$version"
           mkdir release-apks
           signer="$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION/apksigner"
