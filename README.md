@@ -8,25 +8,26 @@ An open-source Jellyfin client for Android TV. This build focuses on video playb
 
 ### Playback
 
-- **ExoPlayer only.** Removed mpv from the build, the player backend selector, external playback, and the **Play with** context-menu action.
-- **Optional server deinterlacing for SD video.** Enable **Settings → Advanced Settings → Playback → Transcode interlaced SD video** to request server-side video transcoding for sources Jellyfin reports as interlaced, up to 1024 × 576. Progressive SD follows the normal playback rules. Jellyfin controls the deinterlacing method and output frame rate.
-- **Playback indicators beside the bottom-right controls.** The video and audio badges report each track’s playback mode separately, including **Direct Play**, **Original** for streams copied by the server, and **Transcoding**.
-- **Frame rate and display refresh rate in one indicator.** The OSD shows readings such as `23.976 fps → 23.976 Hz` or `25 fps → 50 Hz` when those rates are available.
+- **ExoPlayer only.** Removed mpv and its settings, the player backend selector, external playback, and the **Play with** context-menu action. ExoPlayer settings are available directly.
+- **Optional server deinterlacing for SD video.** Enable **Settings → Advanced Settings → Playback → Transcode interlaced SD video** to request server-side video transcoding for sources Jellyfin reports as interlaced, up to 1024 × 576. The toggle defaults to off. Progressive SD follows the normal playback rules. Jellyfin controls the deinterlacing method and output frame rate.
+- **Separate video and audio badges.** The OSD shows each track’s playback mode beside the bottom-right controls. **Direct Play** means the file plays directly. **Original** means Jellyfin copied that track without re-encoding it, and **Transcoding** means Jellyfin re-encoded it. Video can also show **Remuxing** while details are pending. **Unconfirmed** indicates that the track status is unavailable.
+- **Video FPS and display refresh rate.** A third badge shows both rates together, for example `23.976 fps → 23.976 Hz`. The reading uses the active video format when available, with source metadata as a fallback for direct or copied video.
 
 ### Browsing and settings
 
-- Removed trailer buttons and trailer playback from browsing.
-- Removed the **Recommended** library tabs and the **Random** button from library and favourites screens.
-- Removed theme music, music library browsing, and the **Now Playing** music screen. Audio tracks are excluded from video playlist playback.
-- Removed rating displays and rating-based browsing options.
+- Removed **More Like This** rows from detail screens and the recommendation requests that populated them.
+- Removed local and remote trailer buttons and playback, including trailer library browsing.
+- Removed **Recommended** library tabs and the **Random** button from library and favourites screens.
+- Removed theme music, music library browsing, music results from search, and the **Now Playing** music screen. Music items are skipped when building video playlists.
+- Removed audience, critic and age-rating displays from the browsing interface, along with rating-based filters and sorting. Removed the **Display Toggles** settings entry.
 - Removed the profile protection setting. Existing protected profiles can be cleared with one final PIN entry or Jellyfin sign-in.
 - Removed automatic crash reporting and its setting.
-- Disabled Seerr integration and removed its settings and Discover screens.
+- Disabled Seerr integration, including its settings, Discover navigation and request screens.
 
 ### Installation and updates
 
 - The Android launcher displays **Wholphin**. The release package ID is `com.github.damontecres.wholphin`.
-- Signed APKs are built from `main` and published under versioned release tags.
+- GitHub Actions publishes signed Android TV APKs from `main` under versioned release tags. Releases include a universal APK and builds for ARM64, ARMv7 and x86-64. The workflow checks that the signing certificate matches the previous release.
 - The in-app updater checks this repository’s latest stable release. The update URL is fixed and has no settings entry.
 - When Android requires install permission, the updater opens the system screen so you can allow Wholphin to install updates.
 
