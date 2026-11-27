@@ -101,7 +101,6 @@ import org.jellyfin.sdk.model.api.ImageType
 import org.jellyfin.sdk.model.api.ItemSortBy
 import org.jellyfin.sdk.model.api.SortOrder
 import org.jellyfin.sdk.model.api.request.GetItemsRequest
-import org.jellyfin.sdk.model.api.request.GetSimilarItemsRequest
 import java.util.UUID
 
 @HiltViewModel(assistedFactory = ArtistViewModel.Factory::class)
@@ -226,23 +225,6 @@ class ArtistViewModel
                             }
                         }
                     }
-                    if (state.value.similar.isEmpty()) {
-                        viewModelScope.launchIO {
-                            val similar =
-                                api.libraryApi
-                                    .getSimilarItems(
-                                        GetSimilarItemsRequest(
-                                            userId = serverRepository.currentUser?.id,
-                                            itemId = itemId,
-                                            excludeArtistIds = listOf(itemId),
-                                            fields = SlimItemFields,
-                                            limit = 25,
-                                        ),
-                                    ).content.items
-                                    .map { BaseItem.from(it, api) }
-                            _state.update { it.copy(similar = similar) }
-                        }
-                    }
                     updateMusicVideos()
                 } catch (ex: Exception) {
                     _state.update { it.copy(loading = LoadingState.Error(ex)) }
@@ -313,7 +295,6 @@ data class ArtistState(
     val topSongs: List<BaseItem?>,
     val albums: List<BaseItem?>,
     val appearsOnAlbums: List<BaseItem?>,
-    val similar: List<BaseItem>,
     val loading: LoadingState,
     val musicVideos: List<BaseItem?>,
     val canDelete: Boolean,
@@ -323,7 +304,6 @@ data class ArtistState(
             ArtistState(
                 null,
                 null,
-                emptyList(),
                 emptyList(),
                 emptyList(),
                 emptyList(),
@@ -339,7 +319,6 @@ private const val SONG_ROW = HEADER_ROW + 1
 private const val ALBUM_ROW = SONG_ROW + 1
 private const val APPEARS_ON_ROW = SONG_ROW + 1
 private const val MUSIC_VIDEO_ROW = APPEARS_ON_ROW + 1
-private const val SIMILAR_ROW = MUSIC_VIDEO_ROW + 1
 
 @Composable
 fun ArtistDetailsPage(
@@ -359,7 +338,7 @@ fun ArtistDetailsPage(
     val currentMusic by viewModel.currentMusic.collectAsState()
     var position by rememberPosition(0, 0)
     val focusRequesters =
-        remember { List(SIMILAR_ROW + 1) { FocusRequester() } }
+        remember { List(MUSIC_VIDEO_ROW + 1) { FocusRequester() } }
 
     var showPlaylistDialog by remember { mutableStateOf<Optional<UUID>>(Optional.absent()) }
     val playlistState by playlistViewModel.playlistState.collectAsState()
@@ -680,46 +659,6 @@ fun ArtistDetailsPage(
                                     )
                                 },
                                 modifier = Modifier.focusRequester(focusRequesters[MUSIC_VIDEO_ROW]),
-                            )
-                        }
-                    }
-                    if (state.similar.isNotEmpty()) {
-                        item {
-                            ItemRow(
-                                title = stringResource(R.string.more_like_this),
-                                items = state.similar,
-                                onClickItem = { index, item ->
-                                    position = RowColumn(SIMILAR_ROW, index)
-                                    viewModel.navigationManager.navigateTo(item.destination())
-                                },
-                                onLongClickItem = { index, item ->
-                                    showContextMenu =
-                                        ContextMenu.ForMusic(
-                                            fromLongClick = true,
-                                            item = item,
-                                            index = index,
-                                            canDelete =
-                                                viewModel.canDelete(
-                                                    item,
-                                                    preferences.appPreferences,
-                                                ),
-                                            canRemoveFromQueue = false,
-                                            actions = moreDialogActions,
-                                            showGoTo = true,
-                                        )
-                                },
-                                cardContent = { index: Int, item: BaseItem?, mod: Modifier, onClick: () -> Unit, onLongClick: () -> Unit ->
-                                    BannerCardWithTitle(
-                                        title = item?.name,
-                                        subtitle = item?.data?.productionYear?.toString(),
-                                        item = item,
-                                        onClick = onClick,
-                                        onLongClick = onLongClick,
-                                        aspectRatio = AspectRatios.SQUARE,
-                                        modifier = mod,
-                                    )
-                                },
-                                modifier = Modifier.focusRequester(focusRequesters[SIMILAR_ROW]),
                             )
                         }
                     }

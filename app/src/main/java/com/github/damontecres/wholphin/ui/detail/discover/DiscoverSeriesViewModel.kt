@@ -111,26 +111,6 @@ class DiscoverSeriesViewModel
                     updateSeasonStatus(tv)
                     updateAvailability()
 
-                    if (state.value.similar.isEmpty()) {
-                        viewModelScope.launchIO {
-                            val result =
-                                seerrService.api.tvApi
-                                    .tvTvIdSimilarGet(tvId = item.id, page = 1)
-                                    .results
-                                    ?.map { seerrService.createDiscoverItem(it) }
-                                    .orEmpty()
-                            _state.update { it.copy(similar = result) }
-                        }
-                        viewModelScope.launchIO {
-                            val result =
-                                seerrService.api.tvApi
-                                    .tvTvIdRecommendationsGet(tvId = item.id, page = 1)
-                                    .results
-                                    ?.map { seerrService.createDiscoverItem(it) }
-                                    .orEmpty()
-                            _state.update { it.copy(recommended = result) }
-                        }
-                    }
                     val people =
                         tv.credits
                             ?.cast
@@ -439,7 +419,6 @@ data class DiscoverSeriesState(
     val seasons4k: List<RequestSeason> = emptyList(),
     val trailers: List<Trailer> = emptyList(),
     val people: List<DiscoverItem> = emptyList(),
-    val similar: List<DiscoverItem> = emptyList(),
     val recommended: List<DiscoverItem> = emptyList(),
     val canCancelRequest: Boolean = false,
     val profileLoading: LoadingState = LoadingState.Pending,

@@ -110,7 +110,6 @@ fun DiscoverMovieDetails(
                 canCancel = state.canCancelRequest,
                 people = state.people,
                 trailers = state.trailers,
-                similar = state.similar,
                 recommended = state.recommended,
                 requestOnClick = {
                     viewModel.requestOnClick()
@@ -175,8 +174,7 @@ private const val HEADER_ROW = 0
 private const val PEOPLE_ROW = HEADER_ROW + 1
 private const val CHAPTER_ROW = PEOPLE_ROW + 1
 private const val EXTRAS_ROW = CHAPTER_ROW + 1
-private const val SIMILAR_ROW = EXTRAS_ROW + 1
-private const val RECOMMENDED_ROW = SIMILAR_ROW + 1
+private const val RECOMMENDED_ROW = EXTRAS_ROW + 1
 
 @Composable
 fun DiscoverMovieDetailsContent(
@@ -187,7 +185,6 @@ fun DiscoverMovieDetailsContent(
     canCancel: Boolean,
     people: List<DiscoverItem>,
     trailers: List<Trailer>,
-    similar: List<DiscoverItem>,
     recommended: List<DiscoverItem>,
     requestOnClick: () -> Unit,
     cancelOnClick: () -> Unit,
@@ -280,35 +277,6 @@ fun DiscoverMovieDetailsContent(
                 }
             }
 
-            if (similar.isNotEmpty()) {
-                item {
-                    ItemRow(
-                        title = stringResource(R.string.more_like_this),
-                        items = similar,
-                        onClickItem = { index, item ->
-                            position = SIMILAR_ROW
-                            onClickItem.invoke(index, item)
-                        },
-                        onLongClickItem = { index, similar ->
-                            position = SIMILAR_ROW
-                            onLongClickSimilar.invoke(index, similar)
-                        },
-                        cardContent = { index, item, mod, onClick, onLongClick ->
-                            DiscoverItemCard(
-                                item = item,
-                                onClick = onClick,
-                                onLongClick = onLongClick,
-                                showOverlay = true,
-                                modifier = mod,
-                            )
-                        },
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .focusRequester(focusRequesters[SIMILAR_ROW]),
-                    )
-                }
-            }
             if (recommended.isNotEmpty()) {
                 item {
                     ItemRow(

@@ -25,7 +25,6 @@ import com.github.damontecres.wholphin.services.StreamChoiceService
 import com.github.damontecres.wholphin.services.TrailerService
 import com.github.damontecres.wholphin.services.UserPreferencesService
 import com.github.damontecres.wholphin.services.deleteItem
-import com.github.damontecres.wholphin.ui.ItemRowFields
 import com.github.damontecres.wholphin.ui.launchDefault
 import com.github.damontecres.wholphin.ui.launchIO
 import com.github.damontecres.wholphin.ui.letNotEmpty
@@ -45,7 +44,6 @@ import kotlinx.coroutines.flow.update
 import org.jellyfin.sdk.api.client.ApiClient
 import org.jellyfin.sdk.api.client.extensions.libraryApi
 import org.jellyfin.sdk.model.api.MediaStreamType
-import org.jellyfin.sdk.model.api.request.GetSimilarItemsRequest
 import timber.log.Timber
 import java.util.UUID
 
@@ -146,21 +144,6 @@ class MovieViewModel
                     }
                 }
 
-                if (state.value.similar.isEmpty()) {
-                    val similar =
-                        api.libraryApi
-                            .getSimilarItems(
-                                GetSimilarItemsRequest(
-                                    userId = serverRepository.currentUser?.id,
-                                    itemId = itemId,
-                                    fields = ItemRowFields,
-                                    limit = 25,
-                                ),
-                            ).content.items
-                            .map { BaseItem(it) }
-
-                    _state.update { it.copy(similar = similar) }
-                }
             }
 
         fun setWatched(
@@ -271,7 +254,6 @@ data class MovieState(
     val people: List<Person> = emptyList(),
     val chapters: List<Chapter> = emptyList(),
     val extras: List<ExtrasItem> = emptyList(),
-    val similar: List<BaseItem> = emptyList(),
     val discovered: List<DiscoverItem> = emptyList(),
     val chosenStreams: ChosenStreams? = null,
     val canDelete: Boolean = false,

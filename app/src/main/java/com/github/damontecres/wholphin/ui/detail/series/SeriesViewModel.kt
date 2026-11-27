@@ -26,7 +26,6 @@ import com.github.damontecres.wholphin.services.StreamChoiceService
 import com.github.damontecres.wholphin.services.TrailerService
 import com.github.damontecres.wholphin.services.UserPreferencesService
 import com.github.damontecres.wholphin.services.deleteItem
-import com.github.damontecres.wholphin.ui.ItemRowFields
 import com.github.damontecres.wholphin.ui.equalsNotNull
 import com.github.damontecres.wholphin.ui.gt
 import com.github.damontecres.wholphin.ui.launchDefault
@@ -75,7 +74,6 @@ import org.jellyfin.sdk.model.api.MediaStreamType
 import org.jellyfin.sdk.model.api.SortOrder
 import org.jellyfin.sdk.model.api.request.GetEpisodesRequest
 import org.jellyfin.sdk.model.api.request.GetItemsRequest
-import org.jellyfin.sdk.model.api.request.GetSimilarItemsRequest
 import timber.log.Timber
 import java.util.UUID
 
@@ -222,22 +220,6 @@ class SeriesViewModel
                     viewModelScope.launchIO {
                         val extras = extrasService.getExtras(series.id)
                         _state.update { it.copy(extras = extras) }
-                    }
-                    if (state.value.similar.isEmpty()) {
-                        viewModelScope.launchIO {
-                            val similar =
-                                api.libraryApi
-                                    .getSimilarItems(
-                                        GetSimilarItemsRequest(
-                                            userId = serverRepository.currentUser?.id,
-                                            itemId = seriesId,
-                                            fields = ItemRowFields,
-                                            limit = 25,
-                                        ),
-                                    ).content.items
-                                    .map { BaseItem(it, true) }
-                            _state.update { it.copy(similar = similar) }
-                        }
                     }
                     viewModelScope.launchIO {
                         val results = seerrService.similar(series).orEmpty()
@@ -866,7 +848,6 @@ data class SeriesState(
     val trailers: List<Trailer> = emptyList(),
     val extras: List<ExtrasItem> = emptyList(),
     val people: List<Person> = emptyList(),
-    val similar: List<BaseItem> = emptyList(),
     val canDeleteSeries: Boolean = false,
     val peopleInEpisode: PeopleInItem = PeopleInItem(),
     val discovered: List<DiscoverItem> = emptyList(),

@@ -117,7 +117,6 @@ fun DiscoverSeriesDetails(
                 canCancel = state.canCancelRequest,
                 seasons = state.seasons,
                 people = state.people,
-                similar = state.similar,
                 recommended = state.recommended,
                 modifier = modifier,
                 onClickItem = { index, item ->
@@ -205,8 +204,7 @@ private const val HEADER_ROW = 0
 private const val SEASONS_ROW = HEADER_ROW + 1
 private const val PEOPLE_ROW = SEASONS_ROW + 1
 private const val EXTRAS_ROW = PEOPLE_ROW + 1
-private const val SIMILAR_ROW = EXTRAS_ROW + 1
-private const val RECOMMENDED_ROW = SIMILAR_ROW + 1
+private const val RECOMMENDED_ROW = EXTRAS_ROW + 1
 
 @Composable
 fun DiscoverSeriesDetailsContent(
@@ -217,7 +215,6 @@ fun DiscoverSeriesDetailsContent(
     rating: DiscoverRating?,
     canCancel: Boolean,
     seasons: List<RequestSeason>,
-    similar: List<DiscoverItem>,
     recommended: List<DiscoverItem>,
     trailers: List<Trailer>,
     people: List<DiscoverItem>,
@@ -344,35 +341,6 @@ fun DiscoverSeriesDetailsContent(
                                 onLongClickPerson.invoke(index, person)
                             },
                             modifier = Modifier.focusRequester(focusRequesters[PEOPLE_ROW]),
-                        )
-                    }
-                }
-                if (similar.isNotEmpty()) {
-                    item {
-                        ItemRow(
-                            title = stringResource(R.string.more_like_this),
-                            items = similar,
-                            onClickItem = { index, item ->
-                                position = SIMILAR_ROW
-                                onClickItem.invoke(index, item)
-                            },
-                            onLongClickItem = { index, similar ->
-                                position = SIMILAR_ROW
-                                onLongClickSimilar.invoke(index, similar)
-                            },
-                            cardContent = { index, item, mod, onClick, onLongClick ->
-                                DiscoverItemCard(
-                                    item = item,
-                                    onClick = onClick,
-                                    onLongClick = onLongClick,
-                                    showOverlay = true,
-                                    modifier = mod,
-                                )
-                            },
-                            modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .focusRequester(focusRequesters[SIMILAR_ROW]),
                         )
                     }
                 }

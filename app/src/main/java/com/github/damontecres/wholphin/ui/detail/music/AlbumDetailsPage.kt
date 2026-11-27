@@ -59,7 +59,6 @@ import com.github.damontecres.wholphin.services.ServerReportService
 import com.github.damontecres.wholphin.services.UserPreferencesService
 import com.github.damontecres.wholphin.ui.AspectRatios
 import com.github.damontecres.wholphin.ui.ItemRowFields
-import com.github.damontecres.wholphin.ui.SlimItemFields
 import com.github.damontecres.wholphin.ui.cards.BannerCardWithTitle
 import com.github.damontecres.wholphin.ui.cards.ExtrasRow
 import com.github.damontecres.wholphin.ui.cards.ItemRow
@@ -103,7 +102,6 @@ import org.jellyfin.sdk.api.client.extensions.libraryApi
 import org.jellyfin.sdk.model.api.BaseItemKind
 import org.jellyfin.sdk.model.api.ImageType
 import org.jellyfin.sdk.model.api.request.GetItemsRequest
-import org.jellyfin.sdk.model.api.request.GetSimilarItemsRequest
 import java.util.UUID
 
 @HiltViewModel(assistedFactory = AlbumViewModel.Factory::class)
@@ -186,23 +184,6 @@ class AlbumViewModel
                         )
                     }
                     updateBackDrop()
-                    if (state.value.similar.isEmpty()) {
-                        viewModelScope.launchIO {
-                            val similar =
-                                api.libraryApi
-                                    .getSimilarItems(
-                                        GetSimilarItemsRequest(
-                                            userId = serverRepository.currentUser?.id,
-                                            itemId = itemId,
-                                            excludeArtistIds = album.data.albumArtists?.map { it.id },
-                                            fields = SlimItemFields,
-                                            limit = 25,
-                                        ),
-                                    ).content.items
-                                    .map { BaseItem.from(it, api) }
-                            _state.update { it.copy(similar = similar) }
-                        }
-                    }
                     viewModelScope.launchIO {
                         val request =
                             GetItemsRequest(
@@ -294,7 +275,6 @@ data class AlbumState(
     val isVariousArtists: Boolean,
     val imageUrl: String?,
     val songs: List<BaseItem?>,
-    val similar: List<BaseItem>,
     val loading: LoadingState,
     val initialSongIndex: Int? = null,
     val musicVideos: List<BaseItem?> = emptyList(),
@@ -302,7 +282,7 @@ data class AlbumState(
     val canDelete: Boolean = false,
 ) {
     companion object {
-        val EMPTY = AlbumState(null, false, null, emptyList(), emptyList(), LoadingState.Pending)
+        val EMPTY = AlbumState(null, false, null, emptyList(), LoadingState.Pending)
     }
 }
 
@@ -310,7 +290,6 @@ private const val HEADER_ROW = 0
 private const val SONG_ROW = HEADER_ROW + 1
 private const val MUSIC_VIDEO_ROW = SONG_ROW + 1
 private const val EXTRAS_ROW = SONG_ROW + 1
-private const val SIMILAR_ROW = EXTRAS_ROW + 1
 
 @Composable
 fun AlbumDetailsPage(
@@ -330,7 +309,7 @@ fun AlbumDetailsPage(
     val currentMusic by viewModel.currentMusic.collectAsState()
 
     val focusRequesters =
-        remember { List(SIMILAR_ROW + 1) { FocusRequester() } }
+        remember { List(EXTRAS_ROW + 1) { FocusRequester() } }
     val focusManager = LocalFocusManager.current
     var showPlaylistDialog by remember { mutableStateOf<Optional<UUID>>(Optional.absent()) }
     val playlistState by playlistViewModel.playlistState.collectAsState()
@@ -582,46 +561,6 @@ fun AlbumDetailsPage(
                                 },
                                 onLongClickItem = { _, _ -> },
                                 modifier = Modifier.focusRequester(focusRequesters[EXTRAS_ROW]),
-                            )
-                        }
-                    }
-                    if (state.similar.isNotEmpty()) {
-                        item {
-                            ItemRow(
-                                title = stringResource(R.string.more_like_this),
-                                items = state.similar,
-                                onClickItem = { index, item ->
-                                    position = RowColumn(SIMILAR_ROW, index)
-                                    viewModel.navigationManager.navigateTo(item.destination())
-                                },
-                                onLongClickItem = { index, item ->
-                                    showContextMenu =
-                                        ContextMenu.ForMusic(
-                                            fromLongClick = true,
-                                            item = item,
-                                            index = index,
-                                            canDelete =
-                                                viewModel.canDelete(
-                                                    item,
-                                                    preferences.appPreferences,
-                                                ),
-                                            canRemoveFromQueue = false,
-                                            actions = moreDialogActions,
-                                            showGoTo = true,
-                                        )
-                                },
-                                cardContent = { index: Int, item: BaseItem?, mod: Modifier, onClick: () -> Unit, onLongClick: () -> Unit ->
-                                    BannerCardWithTitle(
-                                        title = item?.name,
-                                        subtitle = item?.data?.productionYear?.toString(),
-                                        item = item,
-                                        onClick = onClick,
-                                        onLongClick = onLongClick,
-                                        aspectRatio = AspectRatios.SQUARE,
-                                        modifier = mod,
-                                    )
-                                },
-                                modifier = Modifier.focusRequester(focusRequesters[SIMILAR_ROW]),
                             )
                         }
                     }

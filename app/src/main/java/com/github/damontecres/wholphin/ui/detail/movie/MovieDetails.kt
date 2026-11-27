@@ -23,7 +23,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -35,13 +34,10 @@ import com.github.damontecres.wholphin.data.model.Person
 import com.github.damontecres.wholphin.data.model.Trailer
 import com.github.damontecres.wholphin.preferences.UserPreferences
 import com.github.damontecres.wholphin.services.TrailerService
-import com.github.damontecres.wholphin.ui.Cards
 import com.github.damontecres.wholphin.ui.RequestOrRestoreFocus
 import com.github.damontecres.wholphin.ui.cards.ChapterRow
 import com.github.damontecres.wholphin.ui.cards.ExtrasRow
-import com.github.damontecres.wholphin.ui.cards.ItemRow
 import com.github.damontecres.wholphin.ui.cards.PersonRow
-import com.github.damontecres.wholphin.ui.cards.SeasonCard
 import com.github.damontecres.wholphin.ui.components.ContextMenu
 import com.github.damontecres.wholphin.ui.components.ContextMenuActions
 import com.github.damontecres.wholphin.ui.components.ContextMenuDialog
@@ -204,20 +200,6 @@ fun MovieDetails(
                                 ),
                         )
                 },
-                onLongClickSimilar = { _, similar ->
-                    showContextMenu =
-                        ContextMenu.ForBaseItem(
-                            fromLongClick = true,
-                            item = similar,
-                            chosenStreams = null,
-                            showGoTo = true,
-                            showStreamChoices = false,
-                            canDelete = false,
-                            canRemoveContinueWatching = false,
-                            canRemoveNextUp = false,
-                            actions = contextActions,
-                        )
-                },
                 trailerOnClick = {
                     TrailerService.onClick(context, it, viewModel::navigateTo)
                 },
@@ -277,8 +259,7 @@ private const val PEOPLE_ROW = HEADER_ROW + 1
 private const val TRAILER_ROW = PEOPLE_ROW + 1
 private const val CHAPTER_ROW = TRAILER_ROW + 1
 private const val EXTRAS_ROW = CHAPTER_ROW + 1
-private const val SIMILAR_ROW = EXTRAS_ROW + 1
-private const val DISCOVER_ROW = SIMILAR_ROW + 1
+private const val DISCOVER_ROW = EXTRAS_ROW + 1
 
 @Composable
 fun MovieDetailsContent(
@@ -294,7 +275,6 @@ fun MovieDetailsContent(
     onClickItem: (Int, BaseItem) -> Unit,
     onClickPerson: (Person) -> Unit,
     onLongClickPerson: (Int, Person) -> Unit,
-    onLongClickSimilar: (Int, BaseItem) -> Unit,
     onClickExtra: (Int, ExtrasItem) -> Unit,
     onClickDiscover: (Int, DiscoverItem) -> Unit,
     canDelete: Boolean,
@@ -429,45 +409,6 @@ fun MovieDetailsContent(
                             Modifier
                                 .fillMaxWidth()
                                 .focusRequester(focusRequesters[EXTRAS_ROW]),
-                    )
-                }
-            }
-            state.similar.letNotEmpty { similar ->
-                item {
-                    val imageHeight =
-                        remember(movie.type) {
-                            if (movie.type == BaseItemKind.MOVIE) {
-                                Cards.height2x3
-                            } else {
-                                Cards.heightEpisode
-                            }
-                        }
-                    ItemRow(
-                        title = stringResource(R.string.more_like_this),
-                        items = similar,
-                        onClickItem = { index, item ->
-                            position = SIMILAR_ROW
-                            onClickItem.invoke(index, item)
-                        },
-                        onLongClickItem = { index, similar ->
-                            position = SIMILAR_ROW
-                            onLongClickSimilar.invoke(index, similar)
-                        },
-                        cardContent = { index, item, mod, onClick, onLongClick ->
-                            SeasonCard(
-                                item = item,
-                                onClick = onClick,
-                                onLongClick = onLongClick,
-                                modifier = mod,
-                                showImageOverlay = true,
-                                imageHeight = imageHeight,
-                                imageWidth = Dp.Unspecified,
-                            )
-                        },
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .focusRequester(focusRequesters[SIMILAR_ROW]),
                     )
                 }
             }
