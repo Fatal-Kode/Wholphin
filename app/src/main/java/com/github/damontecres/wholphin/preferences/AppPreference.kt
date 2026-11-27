@@ -15,6 +15,7 @@ import com.github.damontecres.wholphin.ui.preferences.ConditionalPreferences
 import com.github.damontecres.wholphin.ui.preferences.PreferenceGroup
 import com.github.damontecres.wholphin.ui.preferences.PreferenceScreenOption
 import com.github.damontecres.wholphin.ui.preferences.PreferenceValidation
+import com.github.damontecres.wholphin.util.CrashReports
 import com.github.damontecres.wholphin.util.DebugLogTree
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.milliseconds
@@ -60,6 +61,21 @@ sealed interface AppPreference<Pref, T> {
     ): PreferenceValidation = PreferenceValidation.Valid
 
     companion object {
+        val CrashReporting =
+            AppSwitchPreference<AppPreferences>(
+                title = R.string.wholphin_crash_reporting,
+                defaultValue = false,
+                getter = { CrashReports.isEnabled(WholphinApplication.instance) },
+                setter = { prefs, enabled ->
+                    CrashReports.preferences(WholphinApplication.instance).edit {
+                        putBoolean(CrashReports.ENABLED, enabled)
+                    }
+                    prefs.update { sendCrashReports = enabled }
+                },
+                summaryOn = R.string.wholphin_crash_reporting_summary,
+                summaryOff = R.string.disabled,
+            )
+
         val SkipForward =
             AppSliderPreference<AppPreferences>(
                 title = R.string.skip_forward_preference,
@@ -1340,7 +1356,7 @@ val advancedPreferences =
                     listOf(
                         AppPreference.QuickConnect,
                         AppPreference.SendAppLogs,
-
+                        AppPreference.CrashReporting,
                         AppPreference.DebugLogging,
                         AppPreference.ImageDiskCacheSize,
                         AppPreference.ClearImageCache,

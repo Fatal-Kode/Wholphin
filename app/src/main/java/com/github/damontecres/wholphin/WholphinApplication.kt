@@ -6,9 +6,14 @@ import android.os.StrictMode
 import android.util.Log
 import androidx.compose.runtime.Composer
 import androidx.compose.runtime.ExperimentalComposeRuntimeApi
+import androidx.core.content.edit
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import com.github.damontecres.wholphin.util.CrashReports
 import dagger.hilt.android.HiltAndroidApp
+import org.acra.config.dialog
+import org.acra.data.StringFormat
+import org.acra.ktx.initAcra
 import org.jellyfin.sdk.Jellyfin
 import org.jellyfin.sdk.model.ServerVersion
 import timber.log.Timber
@@ -65,6 +70,22 @@ class WholphinApplication :
 //                    .penaltyLog()
 //                    .build(),
 //            )
+        }
+        val crashPreferences = CrashReports.preferences(this)
+        if (!crashPreferences.contains(CrashReports.ENABLED)) {
+            crashPreferences.edit { putBoolean(CrashReports.ENABLED, false) }
+        }
+        initAcra {
+            buildConfigClass = BuildConfig::class.java
+            sharedPreferencesName = CrashReports.PREFERENCES_NAME
+            reportFormat = StringFormat.JSON
+            reportContent = CrashReports.fields
+            dialog {
+                title = getString(R.string.crash_report_title)
+                text = getString(R.string.crash_report_confirmation)
+                positiveButtonText = getString(R.string.crash_report_send)
+                negativeButtonText = getString(R.string.crash_report_decline)
+            }
         }
     }
 

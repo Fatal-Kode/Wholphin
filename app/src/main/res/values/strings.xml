@@ -352,6 +352,12 @@
     <string name="send_app_logs_summary">Useful for debugging</string>
     <string name="send_app_logs">Send app logs to current server</string>
     <string name="send_crash_reports_summary">Will try to send to last connected server</string>
+    <string name="wholphin_crash_reporting">Crash reporting</string>
+    <string name="wholphin_crash_reporting_summary">Ask before sending a crash report to your last connected Jellyfin server</string>
+    <string name="crash_report_title">Wholphin crash report</string>
+    <string name="crash_report_confirmation">Send the stack trace, app version and device details to your last connected Jellyfin server?</string>
+    <string name="crash_report_send">Send</string>
+    <string name="crash_report_decline">Do not send</string>
     <string name="send_crash_reports">Send Crash Reports</string>
     <string name="settings">Settings</string>
     <string name="skip_back_on_resume_preference">Skip back when resuming playback</string>

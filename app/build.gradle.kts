@@ -330,6 +330,8 @@ dependencies {
     implementation(libs.coil.gif)
     implementation(libs.coil.svg)
 
+    implementation(libs.acra.dialog)
+
     implementation(libs.jellyfin.core)
     implementation(libs.jellyfin.api)
     implementation(libs.jellyfin.api.okhttp)

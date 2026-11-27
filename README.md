@@ -21,7 +21,7 @@ An open-source Jellyfin client for Android TV. This build focuses on video playb
 - Removed theme music, music library browsing, music results from search, and the **Now Playing** music screen. Music items are skipped when building video playlists.
 - Removed audience, critic and age-rating displays from the browsing interface, along with rating-based filters and sorting. Removed the **Display Toggles** settings entry.
 - Removed the profile protection setting. Existing protected profiles can be cleared with one final PIN entry or Jellyfin sign-in.
-- Removed automatic crash reporting and its setting.
+- **Opt-in crash reporting.** Enable it under **Settings → Advanced Settings → More** to be asked before sending an app crash report to your last connected Jellyfin server. Reports include the stack trace, app version, Android version and device model. The setting defaults to off.
 - Disabled Seerr integration, including its settings, Discover navigation and request screens.
 
 ### Installation and updates
