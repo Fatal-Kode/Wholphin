@@ -100,7 +100,7 @@ class WholphinApplication :
                     ReportField.USER_COMMENT,
                     ReportField.USER_CRASH_DATE,
                 )
-            dialog {            dialog {
+            dialog {
                 title = getString(R.string.crash_report_title)
                 text = getString(R.string.crash_report_confirmation)
                 positiveButtonText = getString(R.string.crash_report_send)
