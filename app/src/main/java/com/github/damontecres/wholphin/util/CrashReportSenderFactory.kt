@@ -7,7 +7,6 @@ import com.github.damontecres.wholphin.services.hilt.DeviceModule
 import com.google.auto.service.AutoService
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
-import org.acra.ReportField
 import org.acra.config.CoreConfiguration
 import org.acra.data.CrashReportData
 import org.acra.sender.ReportSender
@@ -19,36 +18,17 @@ import org.jellyfin.sdk.api.client.extensions.systemApi
 import org.jellyfin.sdk.api.okhttp.OkHttpFactory
 import org.jellyfin.sdk.createJellyfin
 import org.json.JSONObject
+import timber.log.Timber
+import java.util.Date
 
 internal object CrashReports {
     const val PREFERENCES_NAME = "wholphin_crash_reporting"
     const val ENABLED = "acra.enable"
 
-    val fields = listOf(
-        ReportField.ANDROID_VERSION,
-        ReportField.APP_VERSION_CODE,
-        ReportField.APP_VERSION_NAME,
-        ReportField.BRAND,
-        ReportField.PHONE_MODEL,
-        ReportField.STACK_TRACE,
-    )
-
     fun preferences(context: Context) =
         context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
     fun isEnabled(context: Context): Boolean = preferences(context).getBoolean(ENABLED, false)
-
-    // Throwable messages can contain URLs or media paths. Keep exception types and stack frames.
-    private val exceptionType = Regex("""^((?:Caused by: |Suppressed: )?(?:[\w$]+\.)+[\w$]+)(?::.*)?$""")
-    private val stackFrame = Regex("""^at [\w.$<>]+\((?:[\w.$-]+(?::\d+)?|Native Method|Unknown Source)\)$""")
-
-    fun sanitizeStackTrace(trace: String): String =
-        trace.lineSequence()
-            .mapNotNull { line ->
-                val trimmed = line.trim()
-                exceptionType.matchEntire(trimmed)?.groupValues?.get(1)
-                    ?: trimmed.takeIf(stackFrame::matches)
-            }.joinToString("\n")
 }
 
 /**
@@ -72,18 +52,28 @@ class CrashReportSender : ReportSender {
         if (!CrashReports.isEnabled(context)) {
             throw ReportSenderException("Crash reporting is disabled")
         }
+        Timber.v("Attempting to send crash report")
         try {
             val recentServer = AppModule.mostRecentServerProvider(context).get()
             val api = recentServer.createApi(context)
             if (api != null) {
                 val obj = JSONObject()
-                val report = errorContent.toMap()
-                CrashReports.fields.forEach { field ->
-                    val value = report[field.name]?.toString() ?: return@forEach
-                    obj.put(field.name, if (field == ReportField.STACK_TRACE) CrashReports.sanitizeStackTrace(value) else value)
+                for ((key, value) in errorContent.toMap()) {
+                    obj.put(key, value)
                 }
+                val jsonStr = obj.toString(2)
                 runBlocking {
-                    api.systemApi.logFile(obj.toString(2))
+                    val filename =
+                        api.systemApi
+                            .logFile(
+                                """
+                                ---
+                                Date: ${Date()}
+                                ---
+
+                                """.trimIndent() + jsonStr,
+                            ).content.fileName
+                    Timber.i("Sent report to %s, filename=%s", api.baseUrl, filename)
                 }
             } else {
                 throw ReportSenderException("Could not find valid server and/or credentials to use")

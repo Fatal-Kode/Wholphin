@@ -355,7 +355,7 @@
     <string name="wholphin_crash_reporting">Crash reporting</string>
     <string name="wholphin_crash_reporting_summary">Ask before sending a crash report to your last connected Jellyfin server</string>
     <string name="crash_report_title">Wholphin crash report</string>
-    <string name="crash_report_confirmation">Send the stack trace, app version and device details to your last connected Jellyfin server?</string>
+    <string name="crash_report_confirmation">Send a crash report, including logs and app preferences, to your last connected Jellyfin server?</string>
     <string name="crash_report_send">Send</string>
     <string name="crash_report_decline">Do not send</string>
     <string name="send_crash_reports">Send Crash Reports</string>

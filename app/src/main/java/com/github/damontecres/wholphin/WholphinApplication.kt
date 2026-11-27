@@ -11,6 +11,8 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.github.damontecres.wholphin.util.CrashReports
 import dagger.hilt.android.HiltAndroidApp
+import org.acra.ACRA
+import org.acra.ReportField
 import org.acra.config.dialog
 import org.acra.data.StringFormat
 import org.acra.ktx.initAcra
@@ -79,14 +81,35 @@ class WholphinApplication :
             buildConfigClass = BuildConfig::class.java
             sharedPreferencesName = CrashReports.PREFERENCES_NAME
             reportFormat = StringFormat.JSON
-            reportContent = CrashReports.fields
-            dialog {
+            excludeMatchingSharedPreferencesKeys = listOf()
+            reportContent =
+                listOf(
+                    ReportField.ANDROID_VERSION,
+                    ReportField.APP_VERSION_CODE,
+                    ReportField.APP_VERSION_NAME,
+                    ReportField.BRAND,
+                    // ReportField.BUILD_CONFIG,
+                    // ReportField.BUILD,
+                    ReportField.CUSTOM_DATA,
+                    ReportField.LOGCAT,
+                    ReportField.PHONE_MODEL,
+                    ReportField.PRODUCT,
+                    ReportField.REPORT_ID,
+                    ReportField.SHARED_PREFERENCES,
+                    ReportField.STACK_TRACE,
+                    ReportField.USER_COMMENT,
+                    ReportField.USER_CRASH_DATE,
+                )
+            dialog {            dialog {
                 title = getString(R.string.crash_report_title)
                 text = getString(R.string.crash_report_confirmation)
                 positiveButtonText = getString(R.string.crash_report_send)
                 negativeButtonText = getString(R.string.crash_report_decline)
             }
+            reportSendFailureToast = "Crash report failed to send"
+            reportSendSuccessToast = "Sent crash report!"
         }
+        ACRA.errorReporter.putCustomData("SDK_INT", Build.VERSION.SDK_INT.toString())
     }
 
     @Inject
